@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamification App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        input, select, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="errorMessage" class="error hidden"></div>
+
+        <div id="loginForm">
+            <h2>Login</h2>
+            <input id="loginEmail" type="email" placeholder="Email" required>
+            <input id="loginPassword" type="password" placeholder="Password" required>
+            <button onclick="login()">Login</button>
+            <button onclick="showRegisterForm()">Register</button>
+        </div>
+
+        <div id="registerForm" class="hidden">
+            <h2>Register</h2>
+            <input id="schoolCode" type="text" placeholder="School Code" required>
+            <input id="fullName" type="text" placeholder="Full Name" required>
+            <input id="registerEmail" type="email" placeholder="Email" required>
+            <input id="registerPassword" type="password" placeholder="Password" required>
+            <select id="role">
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+            </select>
+            <button onclick="register()">Register</button>
+            <button onclick="showLoginForm()">Back to Login</button>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <h2>Welcome, <span id="userFullName"></span></h2>
+            <p>School Code: <span id="userSchoolCode"></span></p>
+            <p>Role: <span id="userRole"></span></p>
+
+            <div id="teacherView" class="hidden">
+                <h3>Set Gamification Mode</h3>
+                <select id="gamificationMode" onchange="updateGamificationMode()">
+                    <option value="competence">Competence</option>
+                    <option value="autonomy">Autonomy</option>
+                    <option value="relatedness">Relatedness</option>
+                </select>
+            </div>
+
+            <div id="studentView" class="hidden">
+                <h3>Your Gamification Mode: <span id="studentGamificationMode"></span></h3>
+                <div id="competenceView" class="hidden">
+                    <p>Points: <span id="studentPoints"></span></p>
+                    <p>Level: <span id="studentLevel"></span></p>
+                </div>
+                <div id="autonomyView" class="hidden">
+                    <p>Avatar: [Avatar Placeholder]</p>
+                    <p>Powers: [Powers Placeholder]</p>
+                </div>
+                <div id="relatednessView" class="hidden">
+                    <p>Team: [Team Placeholder]</p>
+                    <p>Team Leaderboard: [Leaderboard Placeholder]</p>
+                </div>
+            </div>
+
+            <button onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYMlv_m2BcTrhm60hLroWVs0W_9SHSVfQ",
+            authDomain: "gamification-app-856a4.firebaseapp.com",
+            projectId: "gamification-app-856a4",
+            storageBucket: "gamification-app-856a4.appspot.com",
+            messagingSenderId: "966888657590",
+            appId: "1:966888657590:web:98f5990d1c933f8cbc0c17",
+            measurementId: "G-QVK4E2GD51"
+        };
+
+        // Initialize Firebase
+        function initializeFirebase() {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            return {
+                db: firebase.firestore(),
+                auth: firebase.auth()
+            };
+        }
+
+        const { db, auth } = initializeFirebase();
+
+        // Enable offline persistence
+        db.enablePersistence()
+          .catch((err) => {
+              if (err.code == 'failed-precondition') {
+                  console.log("Multiple tabs open, persistence can only be enabled in one tab at a time.");
+              } else if (err.code == 'unimplemented') {
+                  console.log("The current browser does not support all of the features required to enable persistence");
+              }
+          });
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').classList.add('hidden');
+        }
+
+        function showLoginForm() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            hideError();
+        }
+
+        function showRegisterForm() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            hideError();
+        }
+
+        function showDashboard() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            hideError();
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                // loadUserData will be called by the onAuthStateChanged listener
+            } catch (error) {
+                console.error("Login error:", error);
+                showError(`Login failed: ${error.message}`);
+            }
+        }
+
+        async function register() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const schoolCode = document.getElementById('schoolCode').value;
+            const fullName = document.getElementById('fullName').value;
+            const role = document.getElementById('role').value;
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                await db.collection("users").doc(userCredential.user.uid).set({
+                    schoolCode,
+                    fullName,
+                    email,
+                    role
+                });
+                // loadUserData will be called by the onAuthStateChanged listener
+            } catch (error) {
+                console.error("Registration error:", error);
+                showError(`Registration failed: ${error.message}`);
+            }
+        }
+
+        async function loadUserData() {
+            try {
+                const user = auth.currentUser;
+                if (user) {
+                    const userDoc = await db.collection("users").doc(user.uid).get();
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        document.getElementById('userFullName').textContent = userData.fullName;
+                        document.getElementById('userSchoolCode').textContent = userData.schoolCode;
+                        document.getElementById('userRole').textContent = userData.role;
+
+                        const schoolDoc = await db.collection("schools").doc(userData.schoolCode).get();
+                        const schoolData = schoolDoc.data() || {};
+                        const gamificationMode = schoolData.gamificationMode || '';
+
+                        if (userData.role === 'teacher') {
+                            document.getElementById('teacherView').classList.remove('hidden');
+                            document.getElementById('studentView').classList.add('hidden');
+                            document.getElementById('gamificationMode').value = gamificationMode;
+                        } else {
+                            document.getElementById('teacherView').classList.add('hidden');
+                            document.getElementById('studentView').classList.remove('hidden');
+                            document.getElementById('studentGamificationMode').textContent = gamificationMode;
+                            
+                            document.getElementById('competenceView').classList.toggle('hidden', gamificationMode !== 'competence');
+                            document.getElementById('autonomyView').classList.toggle('hidden', gamificationMode !== 'autonomy');
+                            document.getElementById('relatednessView').classList.toggle('hidden', gamificationMode !== 'relatedness');
+
+                            if (gamificationMode === 'competence') {
+                                const studentDoc = await db.collection("students").doc(user.uid).get();
+                                const studentData = studentDoc.data() || {};
+                                document.getElementById('studentPoints').textContent = studentData.points || 0;
+                                document.getElementById('studentLevel').textContent = studentData.level || 1;
+                            }
+                        }
+
+                        showDashboard();
+                    } else {
+                        console.error("User document does not exist");
+                        showError("User data not found. Please try logging in again.");
+                        await logout();
+                    }
+                }
+            } catch (error) {
+                console.error("Load user data error:", error);
+                if (error.code === 'unavailable' || error.code === 'failed-precondition') {
+                    showError("Unable to connect to the server. Please check your internet connection and try again.");
+                } else {
+                    showError(`Failed to load user data: ${error.message}`);
+                }
+            }
+        }
+
+        async function updateGamificationMode() {
+            const gamificationMode = document.getElementById('gamificationMode').value;
+            const schoolCode = document.getElementById('userSchoolCode').textContent;
+
+            try {
+                await db.collection("schools").doc(schoolCode).update({
+                    gamificationMode: gamificationMode
+                });
+                alert('Gamification mode updated');
+            } catch (error) {
+                console.error("Update gamification mode error:", error);
+                showError(`Failed to update gamification mode: ${error.message}`);
+            }
+        }
+
+        async function logout() {
+            try {
+                await auth.signOut();
+                showLoginForm();
+            } catch (error) {
+                console.error("Logout error:", error);
+                showError(`Logout failed: ${error.message}`);
+            }
+        }
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                loadUserData();
+            } else {
+                showLoginForm();
+            }
+        });
+
+        // Initial setup
+        showLoginForm();
+    </script>
+</body>
+</html>
