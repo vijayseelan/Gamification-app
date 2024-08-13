@@ -3,304 +3,1517 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gamification App</title>
+    <title>Modern Gamification App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
         }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    
+        .neumorphic {
+            background: #f0f4f8;
+            box-shadow: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
+            border-radius: 20px;
         }
-        h1, h2, h3 {
-            color: #333;
-        }
-        input, select, button {
-            display: block;
-            width: 100%;
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
+    
+        .neumorphic-inset {
+            background: #f0f4f8;
+            box-shadow: inset 8px 8px 16px #d1d9e6, inset -8px -8px 16px #ffffff;
+            border-radius: 20px;
             border: none;
-            cursor: pointer;
-            transition: background-color 0.3s;
+            outline: none;
         }
-        button:hover {
-            background-color: #45a049;
+    
+        .neumorphic-button {
+            background: #f0f4f8;
+            box-shadow: 5px 5px 10px #d1d9e6, -5px -5px 10px #ffffff;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            transition: all 0.3s ease;
         }
-        .error {
-            color: red;
+    
+        .neumorphic-button:hover {
+            box-shadow: 3px 3px 6px #d1d9e6, -3px -3px 6px #ffffff;
+        }
+    
+        .neumorphic-button:active {
+            box-shadow: inset 5px 5px 10px #d1d9e6, inset -5px -5px 10px #ffffff;
+        }
+    
+        .progress-bar {
+            background: #e0e5ec;
+            box-shadow: inset 3px 3px 6px #c8ccd4, inset -3px -3px 6px #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+    
+        .progress {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            transition: width 0.5s ease-in-out;
+        }
+    
+        #sidebar {
+            transition: all 0.3s ease;
+        }
+    
+        #main-content {
+            transition: all 0.3s ease;
+        }
+    
+        .message-container {
+            background: #f0f4f8;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 3px 3px 6px #d1d9e6, -3px -3px 6px #ffffff;
+        }
+    
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+    
+        .message-sender {
+            font-weight: bold;
+            color: #4a5568;
+        }
+    
+        .message-text {
+            color: #2d3748;
+        }
+    
+        .message-actions {
+            margin-top: 5px;
+        }
+    
+        .message-likes-dislikes {
+            font-size: 0.8em;
+            color: #718096;
+            margin-top: 5px;
+        }
+    
+        /* New styles for lessons */
+        #lessons-section, #lesson-management {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    
+        #add-lesson-form {
+            background: #f0f4f8;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: inset 3px 3px 6px #d1d9e6, inset -3px -3px 6px #ffffff;
+        }
+    
+        #lessons-list, #lessons-management-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+    
+        .lesson-card {
+            background: #f0f4f8;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
+            transition: all 0.3s ease;
+        }
+    
+        .lesson-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 10px 10px 20px #d1d9e6, -10px -10px 20px #ffffff;
+        }
+    
+        .lesson-card img {
+            max-width: 100%;
+            border-radius: 10px;
             margin-bottom: 10px;
         }
-        .hidden {
-            display: none;
+    
+        .lesson-card h4 {
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+    
+        .lesson-card p {
+            color: #718096;
+            margin-bottom: 5px;
+        }
+    
+        .lesson-card a {
+            color: #4299e1;
+            text-decoration: none;
+        }
+    
+        .lesson-card a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div id="errorMessage" class="error hidden"></div>
+<body class="bg-gray-100 font-sans">
 
-        <div id="loginForm">
-            <h2>Login</h2>
-            <input id="loginEmail" type="email" placeholder="Email" required>
-            <input id="loginPassword" type="password" placeholder="Password" required>
-            <button onclick="login()">Login</button>
-            <button onclick="showRegisterForm()">Register</button>
+<div class="flex h-screen">
+    <div id="sidebar" class="neumorphic w-64 p-6 flex flex-col justify-between hidden">
+        <div>
+            <h2 id="app-title" class="text-2xl font-bold text-center mb-8 text-indigo-600">Gamification App</h2>
+            <div id="user-info" class="mb-6">
+                <p class="mb-2"><strong class="text-indigo-600">Name:</strong> <span id="user-name" class="text-gray-700"></span></p>
+                <p class="mb-2"><strong class="text-indigo-600">Role:</strong> <span id="user-role" class="text-gray-700"></span></p>
+                <p><strong class="text-indigo-600">Mode:</strong> <span id="gamification-text" class="text-gray-700"></span></p>
+            </div>
+            <div id="sidebar-content" class="space-y-4"></div>
+        </div>
+        <button onclick="logout()" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold hover:text-indigo-700">Logout</button>
+    </div>
+
+    <div id="main-content" class="flex-1 p-8 overflow-y-auto hidden">
+        <div id="lesson-content">
+            <!-- Competence Mode -->
+            <div id="competence-mode" class="hidden space-y-8">
+                <h3 class="text-2xl font-semibold text-center text-indigo-600 mb-6">Competence Mode</h3>
+
+                <!-- Individual Leaderboard -->
+                <div id="individual-leaderboard" class="neumorphic p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-indigo-600">Individual Leaderboard</h3>
+                    <ul id="individual-leaderboard-list" class="space-y-2"></ul>
+                </div>
+
+                <!-- Award Points and Badges to Students (Visible to Teachers Only) -->
+                <div id="points-award" class="hidden space-y-6">
+                    <div class="neumorphic p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-indigo-600">Award Points to Students</h3>
+                        <select id="student-list" class="neumorphic-inset w-full p-2 mb-4"></select>
+                        <div class="point-buttons grid grid-cols-2 gap-4">
+                            <button onclick="adjustPoints(10)" class="neumorphic-button py-2 px-4 text-green-600 font-semibold">+10xp</button>
+                            <button onclick="adjustPoints(20)" class="neumorphic-button py-2 px-4 text-green-600 font-semibold">+20xp</button>
+                            <button onclick="adjustPoints(50)" class="neumorphic-button py-2 px-4 text-green-600 font-semibold">+50xp</button>
+                            <button onclick="adjustPoints(100)" class="neumorphic-button py-2 px-4 text-green-600 font-semibold">+100xp</button>
+                            <button onclick="adjustPoints(-10)" class="neumorphic-button py-2 px-4 text-red-600 font-semibold">-10xp</button>
+                            <button onclick="adjustPoints(-20)" class="neumorphic-button py-2 px-4 text-red-600 font-semibold">-20xp</button>
+                            <button onclick="adjustPoints(-50)" class="neumorphic-button py-2 px-4 text-red-600 font-semibold">-50xp</button>
+                            <button onclick="adjustPoints(-100)" class="neumorphic-button py-2 px-4 text-red-600 font-semibold">-100xp</button>
+                        </div>
+                    </div>
+
+                    <div class="neumorphic p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-indigo-600">Award Badges to Students</h3>
+                        <div class="badge-buttons grid grid-cols-2 gap-4">
+                            <button onclick="awardBadge('first to answer')" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">First to Answer</button>
+                            <button onclick="awardBadge('first to finish')" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">First to Finish</button>
+                            <button onclick="awardBadge('Hardworking')" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">Hardworking</button>
+                            <button onclick="awardBadge('Team Player')" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">Team Player</button>
+                            <button onclick="awardBadge('Creative Thinker')" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">Creative Thinker</button>
+                            <button onclick="awardBadge('Problem Solver')" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">Problem Solver</button>
+                            <button onclick="awardBadge('Critical Thinker')" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">Critical Thinker</button>
+                            <button onclick="awardBadge('Persistent')" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">Persistent</button>
+                            <button onclick="awardBadge('Quick Learner')" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">Quick Learner</button>
+                            <button onclick="awardBadge('Leader')" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">Leader</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Progress Bar (Visible to Students Only) -->
+                <div id="student-progress" class="hidden space-y-6">
+                    <div class="neumorphic p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-indigo-600">Your Progress</h3>
+                        <div class="mb-4">
+                            <span id="current-level" class="text-indigo-600 font-semibold"></span>
+                            <div class="progress-bar h-4 mt-2">
+                                <div id="progress" class="progress h-full"></div>
+                            </div>
+                            <span id="next-level" class="text-indigo-600 font-semibold"></span>
+                        </div>
+                        <div class="badge-container">
+                            <h4 class="text-lg font-semibold mb-2 text-indigo-600">Your Badges</h4>
+                            <div id="earned-badges" class="flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Autonomy Mode -->
+            <div id="autonomy-mode" class="hidden space-y-8">
+                <h3 class="text-2xl font-semibold text-center text-indigo-600 mb-6">Autonomy Mode</h3>
+                <div id="avatar-customization" class="neumorphic p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-indigo-600">Customize Your Avatar</h3>
+                    <img id="avatar" src="default-avatar.png" alt="Avatar" class="w-32 h-32 rounded-full mx-auto mb-4" />
+                    <input type="text" id="avatar-url" placeholder="Enter Avatar Image URL" class="neumorphic-inset w-full p-2 mb-4" />
+                    <button onclick="updateAvatar()" class="neumorphic-button w-full py-2 px-4 text-indigo-600 font-semibold">Update Avatar</button>
+                </div>
+            </div>
+
+            <!-- Relatedness Mode -->
+            <div id="relatedness-mode" class="hidden space-y-8">
+                <h3 class="text-2xl font-semibold text-center text-indigo-600 mb-6">Relatedness Mode</h3>
+
+                <!-- Team Leaderboard -->
+                <div id="team-leaderboard" class="neumorphic p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-indigo-600">Team Leaderboard</h3>
+                    <ul id="team-leaderboard-list" class="space-y-2"></ul>
+                </div>
+
+                <!-- Team Management (Visible to Teachers Only) -->
+                <div id="team-management" class="hidden space-y-6">
+                    <div class="neumorphic p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-indigo-600">Team Management</h3>
+                        <select id="student-group-list" class="neumorphic-inset w-full p-2 mb-4"></select>
+                        <input type="text" id="team-name" placeholder="Enter Team Name" class="neumorphic-inset w-full p-2 mb-4" />
+                        <button onclick="assignTeam()" class="neumorphic-button w-full py-2 px-4 text-indigo-600 font-semibold">Assign to Team</button>
+                    </div>
+                    <div id="teams-list" class="neumorphic p-6"></div>
+
+                    <div class="neumorphic p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-indigo-600">Award Points to Teams</h3>
+                        <select id="team-select" class="neumorphic-inset w-full p-2 mb-4"></select>
+                        <div class="point-buttons grid grid-cols-2 gap-4">
+                            <button onclick="awardTeamPoints(10)" class="neumorphic-button py-2 px-4 text-green-600 font-semibold">+10xp</button>
+                            <button onclick="awardTeamPoints(20)" class="neumorphic-button py-2 px-4 text-green-600 font-semibold">+20xp</button>
+                            <button onclick="awardTeamPoints(50)" class="neumorphic-button py-2 px-4 text-green-600 font-semibold">+50xp</button>
+                            <button onclick="awardTeamPoints(100)" class="neumorphic-button py-2 px-4 text-green-600 font-semibold">+100xp</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Team Information (Visible to Students Only) -->
+                <div id="student-team-info" class="hidden space-y-6">
+                    <div class="neumorphic p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-indigo-600">Your Team: <span id="student-team-name" class="text-indigo-800"></span></h3>
+                        <ul id="student-team-members" class="list-disc list-inside space-y-2"></ul>
+                    </div>
+
+                    <div class="neumorphic p-6">
+                        <h3 class="text-xl font-semibold mb-4 text-indigo-600">Team Messages</h3>
+                        <div id="student-messages-list" class="space-y-4 mb-4"></div>
+                        <input type="text" id="team-message-input" placeholder="Enter your message" class="neumorphic-inset w-full p-2 mb-4" />
+                        <button onclick="sendMessage()" class="neumorphic-button w-full py-2 px-4 text-indigo-600 font-semibold">Send</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="registerForm" class="hidden">
-            <h2>Register</h2>
-            <input id="schoolCode" type="text" placeholder="School Code" required>
-            <input id="fullName" type="text" placeholder="Full Name" required>
-            <input id="registerEmail" type="email" placeholder="Email" required>
-            <input id="registerPassword" type="password" placeholder="Password" required>
-            <select id="role">
+        <!-- New Lessons Section -->
+        <div id="lessons-section" class="hidden space-y-8">
+            <h3 class="text-2xl font-semibold text-center text-indigo-600 mb-6">Lessons</h3>
+            <div id="lessons-list" class="space-y-4"></div>
+        </div>
+
+        <!-- New Lesson Management Section (Visible to Teachers Only) -->
+        <div id="lesson-management" class="hidden space-y-8">
+            <h3 class="text-2xl font-semibold text-center text-indigo-600 mb-6">Lesson Management</h3>
+            <button onclick="showAddLessonForm()" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">Add New Lesson</button>
+            <div id="add-lesson-form" class="hidden space-y-4">
+                <input type="text" id="lesson-title" placeholder="Lesson Title (required)" class="neumorphic-inset w-full p-2" required>
+                <input type="text" id="lesson-task" placeholder="Lesson Task (optional)" class="neumorphic-inset w-full p-2">
+                <textarea id="lesson-content" placeholder="Lesson Content (optional)" class="neumorphic-inset w-full p-2 h-32"></textarea>
+                <input type="file" id="lesson-image" accept="image/*" class="neumorphic-inset w-full p-2">
+                <div id="lesson-image-preview-container" class="hidden mt-2">
+                    <img id="lesson-image-preview" class="max-w-full h-auto" alt="Image preview" />
+                </div>
+                <input type="file" id="lesson-pdf" accept=".pdf" class="neumorphic-inset w-full p-2">
+                <span id="lesson-pdf-label" class="text-sm text-gray-600"></span>
+                <input type="text" id="lesson-link" placeholder="External Link" class="neumorphic-inset w-full p-2">
+                <button onclick="saveLesson()" class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold">Save Lesson</button>
+            </div>
+            <div id="lessons-management-list" class="space-y-4"></div>
+        </div>
+    </div>
+</div>
+
+<div id="auth-container" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+    <div class="neumorphic p-8 w-full max-w-md">
+        <h2 id="auth-title" class="text-2xl font-bold mb-6 text-center text-indigo-600">Login</h2>
+        <div id="login-form">
+            <input type="email" id="login-email" placeholder="Email" required class="neumorphic-inset w-full p-3 mb-4" />
+            <input type="password" id="login-password" placeholder="Password" required class="neumorphic-inset w-full p-3 mb-4" />
+            <button onclick="login()" class="neumorphic-button w-full py-3 px-4 text-indigo-600 font-semibold mb-4">Login</button>
+            <p class="text-center text-gray-600">Don't have an account? <a href="#" onclick="showRegister()" class="text-indigo-600 font-semibold">Register</a></p>
+        </div>
+
+        <div id="register-form" class="hidden">
+            <input type="text" id="register-school-code" placeholder="School Code" required class="neumorphic-inset w-full p-3 mb-4" />
+            <input type="text" id="register-fullname" placeholder="Full Name" required class="neumorphic-inset w-full p-3 mb-4" />
+            <input type="email" id="register-email" placeholder="Email" required class="neumorphic-inset w-full p-3 mb-4" />
+            <input type="password" id="register-password" placeholder="Password" required class="neumorphic-inset w-full p-3 mb-4" />
+            <select id="register-role" class="neumorphic-inset w-full p-3 mb-4">
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
             </select>
-            <button onclick="register()">Register</button>
-            <button onclick="showLoginForm()">Back to Login</button>
-        </div>
-
-        <div id="dashboard" class="hidden">
-            <h2>Welcome, <span id="userFullName"></span></h2>
-            <p>School Code: <span id="userSchoolCode"></span></p>
-            <p>Role: <span id="userRole"></span></p>
-
-            <div id="teacherView" class="hidden">
-                <h3>Set Gamification Mode</h3>
-                <select id="gamificationMode" onchange="updateGamificationMode()">
-                    <option value="competence">Competence</option>
-                    <option value="autonomy">Autonomy</option>
-                    <option value="relatedness">Relatedness</option>
-                </select>
-            </div>
-
-            <div id="studentView" class="hidden">
-                <h3>Your Gamification Mode: <span id="studentGamificationMode"></span></h3>
-                <div id="competenceView" class="hidden">
-                    <p>Points: <span id="studentPoints"></span></p>
-                    <p>Level: <span id="studentLevel"></span></p>
-                </div>
-                <div id="autonomyView" class="hidden">
-                    <p>Avatar: [Avatar Placeholder]</p>
-                    <p>Powers: [Powers Placeholder]</p>
-                </div>
-                <div id="relatednessView" class="hidden">
-                    <p>Team: [Team Placeholder]</p>
-                    <p>Team Leaderboard: [Leaderboard Placeholder]</p>
-                </div>
-            </div>
-
-            <button onclick="logout()">Logout</button>
+            <select id="register-gamification-mode" class="neumorphic-inset w-full p-3 mb-4 hidden">
+                <option value="competence">Competence</option>
+                <option value="autonomy">Autonomy</option>
+                <option value="relatedness">Relatedness</option>
+            </select>
+            <button onclick="register()" class="neumorphic-button w-full py-3 px-4 text-indigo-600 font-semibold mb-4">Register</button>
+            <p class="text-center text-gray-600">Already have an account? <a href="#" onclick="showLogin()" class="text-indigo-600 font-semibold">Login</a></p>
         </div>
     </div>
+</div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCYMlv_m2BcTrhm60hLroWVs0W_9SHSVfQ",
-            authDomain: "gamification-app-856a4.firebaseapp.com",
-            projectId: "gamification-app-856a4",
-            storageBucket: "gamification-app-856a4.appspot.com",
-            messagingSenderId: "966888657590",
-            appId: "1:966888657590:web:98f5990d1c933f8cbc0c17",
-            measurementId: "G-QVK4E2GD51"
-        };
+<script type="module">
+    // Firebase configuration and initialization
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-auth.js";
+    import { getDatabase, ref, set, get, update, push, onValue } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-storage.js";
 
-        // Initialize Firebase
-        function initializeFirebase() {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            return {
-                db: firebase.firestore(),
-                auth: firebase.auth()
-            };
+    const firebaseConfig = {
+        apiKey: "AIzaSyCYMlv_m2BcTrhm60hLroWVs0W_9SHSVfQ",
+        authDomain: "gamification-app-856a4.firebaseapp.com",
+        databaseURL: "https://gamification-app-856a4-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "gamification-app-856a4",
+        storageBucket: "gamification-app-856a4.appspot.com",
+        messagingSenderId: "966888657590",
+        appId: "1:966888657590:web:98f5990d1c933f8cbc0c17",
+        measurementId: "G-QVK4E2GD51"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+    const storage = getStorage(app);
+
+    // Show login form
+    window.showLogin = function () {
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('register-form').style.display = 'none';
+        document.getElementById('auth-title').textContent = 'Login';
+    }
+
+    // Show register form
+    window.showRegister = function () {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'block';
+        document.getElementById('auth-title').textContent = 'Register';
+    }
+
+    // Handle login
+    window.login = async function () {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            loadDashboard(userCredential.user);
+        } catch (error) {
+            alert('Login failed: ' + error.message);
         }
+    }
 
-        const { db, auth } = initializeFirebase();
+    // Handle registration
+    window.register = async function () {
+        const schoolCode = document.getElementById('register-school-code').value;
+        const fullName = document.getElementById('register-fullname').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        const role = document.getElementById('register-role').value;
+        const gamificationMode = document.getElementById('register-gamification-mode').value;
 
-        // Enable offline persistence
-        db.enablePersistence()
-          .catch((err) => {
-              if (err.code == 'failed-precondition') {
-                  console.log("Multiple tabs open, persistence can only be enabled in one tab at a time.");
-              } else if (err.code == 'unimplemented') {
-                  console.log("The current browser does not support all of the features required to enable persistence");
-              }
-          });
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
 
-        function showError(message) {
-            const errorElement = document.getElementById('errorMessage');
-            errorElement.textContent = message;
-            errorElement.classList.remove('hidden');
-        }
+            await set(ref(db, 'users/' + user.uid), {
+                schoolCode: schoolCode,
+                fullName: fullName,
+                email: email,
+                role: role,
+                gamificationMode: gamificationMode
+            });
 
-        function hideError() {
-            document.getElementById('errorMessage').classList.add('hidden');
-        }
-
-        function showLoginForm() {
-            document.getElementById('loginForm').classList.remove('hidden');
-            document.getElementById('registerForm').classList.add('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
-            hideError();
-        }
-
-        function showRegisterForm() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('registerForm').classList.remove('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
-            hideError();
-        }
-
-        function showDashboard() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('registerForm').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            hideError();
-        }
-
-        async function login() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-                // loadUserData will be called by the onAuthStateChanged listener
-            } catch (error) {
-                console.error("Login error:", error);
-                showError(`Login failed: ${error.message}`);
-            }
-        }
-
-        async function register() {
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const schoolCode = document.getElementById('schoolCode').value;
-            const fullName = document.getElementById('fullName').value;
-            const role = document.getElementById('role').value;
-
-            try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                await db.collection("users").doc(userCredential.user.uid).set({
-                    schoolCode,
-                    fullName,
-                    email,
-                    role
-                });
-                // loadUserData will be called by the onAuthStateChanged listener
-            } catch (error) {
-                console.error("Registration error:", error);
-                showError(`Registration failed: ${error.message}`);
-            }
-        }
-
-        async function loadUserData() {
-            try {
-                const user = auth.currentUser;
-                if (user) {
-                    const userDoc = await db.collection("users").doc(user.uid).get();
-                    if (userDoc.exists) {
-                        const userData = userDoc.data();
-                        document.getElementById('userFullName').textContent = userData.fullName;
-                        document.getElementById('userSchoolCode').textContent = userData.schoolCode;
-                        document.getElementById('userRole').textContent = userData.role;
-
-                        const schoolDoc = await db.collection("schools").doc(userData.schoolCode).get();
-                        const schoolData = schoolDoc.data() || {};
-                        const gamificationMode = schoolData.gamificationMode || '';
-
-                        if (userData.role === 'teacher') {
-                            document.getElementById('teacherView').classList.remove('hidden');
-                            document.getElementById('studentView').classList.add('hidden');
-                            document.getElementById('gamificationMode').value = gamificationMode;
-                        } else {
-                            document.getElementById('teacherView').classList.add('hidden');
-                            document.getElementById('studentView').classList.remove('hidden');
-                            document.getElementById('studentGamificationMode').textContent = gamificationMode;
-                            
-                            document.getElementById('competenceView').classList.toggle('hidden', gamificationMode !== 'competence');
-                            document.getElementById('autonomyView').classList.toggle('hidden', gamificationMode !== 'autonomy');
-                            document.getElementById('relatednessView').classList.toggle('hidden', gamificationMode !== 'relatedness');
-
-                            if (gamificationMode === 'competence') {
-                                const studentDoc = await db.collection("students").doc(user.uid).get();
-                                const studentData = studentDoc.data() || {};
-                                document.getElementById('studentPoints').textContent = studentData.points || 0;
-                                document.getElementById('studentLevel').textContent = studentData.level || 1;
-                            }
-                        }
-
-                        showDashboard();
-                    } else {
-                        console.error("User document does not exist");
-                        showError("User data not found. Please try logging in again.");
-                        await logout();
-                    }
-                }
-            } catch (error) {
-                console.error("Load user data error:", error);
-                if (error.code === 'unavailable' || error.code === 'failed-precondition') {
-                    showError("Unable to connect to the server. Please check your internet connection and try again.");
-                } else {
-                    showError(`Failed to load user data: ${error.message}`);
-                }
-            }
-        }
-
-        async function updateGamificationMode() {
-            const gamificationMode = document.getElementById('gamificationMode').value;
-            const schoolCode = document.getElementById('userSchoolCode').textContent;
-
-            try {
-                await db.collection("schools").doc(schoolCode).update({
+            // If the user is a teacher, set the gamification mode for the school
+            if (role === 'teacher') {
+                await set(ref(db, 'schools/' + schoolCode), {
                     gamificationMode: gamificationMode
                 });
-                alert('Gamification mode updated');
-            } catch (error) {
-                console.error("Update gamification mode error:", error);
-                showError(`Failed to update gamification mode: ${error.message}`);
             }
-        }
 
-        async function logout() {
-            try {
-                await auth.signOut();
-                showLoginForm();
-            } catch (error) {
-                console.error("Logout error:", error);
-                showError(`Logout failed: ${error.message}`);
-            }
+            loadDashboard(user);
+        } catch (error) {
+            alert('Registration failed: ' + error.message);
         }
+    }
 
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                loadUserData();
+    // Load dashboard (for both teachers and students)
+    async function loadDashboard(user) {
+        try {
+            const userRef = ref(db, 'users/' + user.uid);
+            const userSnapshot = await get(userRef);
+            if (userSnapshot.exists()) {
+                const userData = userSnapshot.val();
+
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('sidebar').style.display = 'flex';
+                document.getElementById('main-content').style.display = 'block';
+
+                document.getElementById('user-name').textContent = userData.fullName;
+                document.getElementById('user-role').textContent = userData.role;
+
+                // Fetch the gamification mode for the user's school
+                const schoolRef = ref(db, 'schools/' + userData.schoolCode);
+                const schoolSnapshot = await get(schoolRef);
+
+                if (schoolSnapshot.exists()) {
+                    const schoolData = schoolSnapshot.val();
+                    displayGamificationMode(schoolData.gamificationMode, userData.role, userData.schoolCode);
+
+                    // Adjust sidebar content based on gamification mode and role
+                    updateSidebarContent(userData.role, schoolData.gamificationMode);
+
+                    if (userData.role === "teacher") {
+                        if (schoolData.gamificationMode === 'competence') {
+                            document.getElementById('points-award').style.display = 'block';
+                            document.getElementById('student-progress').style.display = 'none'; // Hide student progress for teachers
+                            loadStudents(userData.schoolCode, false);
+                        } else if (schoolData.gamificationMode === 'relatedness') {
+                            document.getElementById('team-management').style.display = 'block';
+                            loadStudentsForGroupAssignment(userData.schoolCode);
+                            loadTeams(userData.schoolCode);
+                            setupTeamLeaderboardListener(userData.schoolCode);
+                        }
+                    } else if (userData.role === "student") {
+                        if (schoolData.gamificationMode === 'competence') {
+                            loadIndividualLeaderboard(userData.schoolCode);
+                            loadStudentProgress(user.uid);
+                        } else if (schoolData.gamificationMode === 'relatedness') {
+                            loadStudentTeam(user.uid);
+                            setupTeamLeaderboardListener(userData.schoolCode); // Set up real-time listener for the team leaderboard
+                        }
+                    }
+                } else {
+                    console.log("No school data found for this user.");
+                }
             } else {
-                showLoginForm();
+                alert('No data available');
+            }
+        } catch (error) {
+            console.error('Failed to load dashboard:', error);
+        }
+    }
+
+    // Update the sidebar content based on role and gamification mode
+    function updateSidebarContent(role, mode) {
+        const sidebarContent = document.getElementById('sidebar-content');
+        sidebarContent.innerHTML = '';
+
+        const commonItems = `
+            <li class="text-gray-700 hover:text-indigo-600 cursor-pointer" onclick="showDashboard()">Dashboard</li>
+            <li class="text-gray-700 hover:text-indigo-600 cursor-pointer" onclick="showLessons()">Lessons</li>
+        `;
+
+        if (mode === 'competence') {
+            sidebarContent.innerHTML = `
+                <h3 class="text-lg font-semibold mb-2 text-indigo-600">Competence Mode</h3>
+                <ul class="space-y-2">
+                    ${commonItems}
+                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Points</li>
+                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Badges</li>
+                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Leaderboard</li>
+                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Levels</li>
+                </ul>
+            `;
+        } else if (mode === 'autonomy') {
+            sidebarContent.innerHTML = `
+                <h3 class="text-lg font-semibold mb-2 text-indigo-600">Autonomy Mode</h3>
+                <ul class="space-y-2">
+                    ${commonItems}
+                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Avatar Customization</li>
+                </ul>
+            `;
+        } else if (mode === 'relatedness') {
+            sidebarContent.innerHTML = `
+                <h3 class="text-lg font-semibold mb-2 text-indigo-600">Relatedness Mode</h3>
+                <ul class="space-y-2">
+                    ${commonItems}
+                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Teams</li>
+                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Messages</li>
+                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Leaderboard</li>
+                </ul>
+            `;
+        }
+
+        if (role === 'teacher') {
+            sidebarContent.innerHTML += `
+                <div class="mt-6">
+                    <h4 class="text-lg font-semibold mb-2 text-indigo-600">Teacher Actions</h4>
+                    <ul class="space-y-2">
+                        <li class="text-gray-700 hover:text-indigo-600 cursor-pointer" onclick="showLessonManagement()">Manage Lessons</li>
+                        ${mode === 'competence' ? `
+                            <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Award Points</li>
+                            <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Award Badges</li>
+                        ` : ''}
+                        ${mode === 'relatedness' ? `
+                            <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Manage Teams</li>
+                            <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Award Team Points</li>
+                        ` : ''}
+                    </ul>
+                </div>
+            `;
+        }
+    }
+
+    // Display gamification mode
+    function displayGamificationMode(mode, role, schoolCode) {
+        document.getElementById('gamification-text').textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+
+        document.getElementById('competence-mode').style.display = mode === 'competence' ? 'block' : 'none';
+        document.getElementById('autonomy-mode').style.display = mode === 'autonomy' ? 'block' : 'none';
+        document.getElementById('relatedness-mode').style.display = mode === 'relatedness' ? 'block' : 'none';
+
+        if (role === 'student') {
+            // Hide the ability to award points and assign teams from students
+            document.getElementById('points-award').style.display = 'none';
+            document.getElementById('team-management').style.display = 'none';
+
+            if (mode === 'competence') {
+                loadIndividualLeaderboard(schoolCode);
+            } else if (mode === 'relatedness') {
+                setupTeamLeaderboardListener(schoolCode);
+            }
+        }
+    }
+
+    // Load individual leaderboard for students in competence mode
+    async function loadIndividualLeaderboard(schoolCode) {
+        try {
+            const leaderboardRef = ref(db, `schools/${schoolCode}/leaderboard`);
+            const snapshot = await get(leaderboardRef);
+            const leaderboardList = document.getElementById('individual-leaderboard-list');
+            leaderboardList.innerHTML = '';
+
+            // Create an array to store students for sorting
+            let students = [];
+
+            snapshot.forEach((childSnapshot) => {
+                const student = childSnapshot.val();
+                students.push({ name: student.name, points: student.points });
+            });
+
+            // Sort the students by points in descending order
+            students.sort((a, b) => b.points - a.points);
+
+            // Render the sorted students in the leaderboard
+            students.forEach((student) => {
+                const li = document.createElement('li');
+                li.textContent = `${student.name} - ${student.points} points`;
+                li.className = 'py-2 border-b border-gray-200 last:border-b-0';
+                leaderboardList.appendChild(li);
+            });
+        } catch (error) {
+            console.error('Failed to load individual leaderboard:', error);
+        }
+    }
+
+    // Load team leaderboard for relatedness mode with real-time updates
+    function setupTeamLeaderboardListener(schoolCode) {
+        const teamsRef = ref(db, `schools/${schoolCode}/teams`);
+        const leaderboardList = document.getElementById('team-leaderboard-list');
+
+        onValue(teamsRef, (snapshot) => {
+            leaderboardList.innerHTML = ''; // Clear the list first
+
+            // Create an array to store teams for sorting
+            let teams = [];
+
+            snapshot.forEach((childSnapshot) => {
+                const team = childSnapshot.val();
+                teams.push({ name: childSnapshot.key, points: team.points || 0 });
+            });
+
+            // Sort the teams by points in descending order
+            teams.sort((a, b) => b.points - a.points);
+
+            // Render the sorted teams in the leaderboard
+            teams.forEach((team) => {
+                const li = document.createElement('li');
+                li.textContent = `${team.name} - ${team.points} points`;
+                li.className = 'py-2 border-b border-gray-200 last:border-b-0';
+                leaderboardList.appendChild(li);
+            });
+        }, (error) => {
+            console.error('Failed to load team leaderboard:', error);
+        });
+    }
+
+    // Load student progress for competence mode
+    async function loadStudentProgress(uid) {
+        try {
+            const studentRef = ref(db, `users/${uid}`);
+            const studentSnapshot = await get(studentRef);
+
+            if (studentSnapshot.exists()) {
+                const studentData = studentSnapshot.val();
+                const currentPoints = studentData.points || 0;
+                const currentLevel = Math.floor(currentPoints / 1000) + 1;
+                const nextLevel = currentLevel + 1;
+                const progress = (currentPoints % 1000) / 10;
+
+                document.getElementById('current-level').textContent = `Level: ${currentLevel}`;
+                document.getElementById('progress').style.width = `${progress}%`;
+                document.getElementById('next-level').textContent = `Next Level: ${nextLevel}`;
+
+                loadEarnedBadges(uid);
+
+                document.getElementById('student-progress').style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Failed to load student progress:', error);
+        }
+    }
+
+    // Load earned badges for a student
+    async function loadEarnedBadges(uid) {
+        try {
+            const badgesRef = ref(db, `users/${uid}/badges`);
+            const snapshot = await get(badgesRef);
+            const badgesContainer = document.getElementById('earned-badges');
+            badgesContainer.innerHTML = '';
+
+            // Create badge elements only for earned badges
+            snapshot.forEach((childSnapshot) => {
+                const badgeName = childSnapshot.val();
+                const badge = document.createElement('div');
+                badge.className = 'neumorphic p-2 rounded-full';
+                const img = document.createElement('img');
+                img.src = `images/badges/${badgeName.toLowerCase().replace(/ /g, '-')}.png`;
+                img.alt = badgeName;
+                img.className = 'w-12 h-12';
+                
+                // Set default image if badge image fails to load
+                img.onerror = () => {
+                    img.src = 'images/badges/default-badge.png';
+                };
+                
+                badge.appendChild(img);
+                badge.title = badgeName; // Add tooltip with badge name
+                badgesContainer.appendChild(badge);
+            });
+
+            // If no badges earned, display a message
+            if (badgesContainer.children.length === 0) {
+                const noBadgesMsg = document.createElement('p');
+                noBadgesMsg.textContent = 'No badges earned yet.';
+                noBadgesMsg.className = 'text-gray-500 italic';
+                badgesContainer.appendChild(noBadgesMsg);
+            }
+        } catch (error) {
+            console.error('Failed to load earned badges:', error);
+        }
+    }
+
+    // Load students list for the teacher
+    async function loadStudents(schoolCode, showAvatars = false) {
+        try {
+            const usersRef = ref(db, 'users');
+            const snapshot = await get(usersRef);
+            const studentList = document.getElementById('student-list');
+            studentList.innerHTML = ''; // Clear the list first
+
+            let studentsFound = false;
+
+            snapshot.forEach((childSnapshot) => {
+                const userData = childSnapshot.val();
+                if (userData.schoolCode === schoolCode && userData.role === 'student') {
+                    const option = document.createElement('option');
+                    option.value = childSnapshot.key; // Use student's UID as value
+                    option.textContent = userData.fullName; // Show student's full name in the dropdown
+                    studentList.appendChild(option);
+                    studentsFound = true;
+                }
+            });
+
+            if (!studentsFound) {
+                const option = document.createElement('option');
+                option.textContent = 'No students found';
+                option.disabled = true;
+                studentList.appendChild(option);
+            }
+        } catch (error) {
+            console.error('Failed to load students list:', error);
+        }
+    }
+
+    // Adjust points for a student (Only for teachers)
+    window.adjustPoints = async function (points) {
+        const studentUid = document.getElementById('student-list').value;
+
+        if (studentUid) {
+            try {
+                const studentRef = ref(db, `users/${studentUid}`);
+                const studentSnapshot = await get(studentRef);
+
+                if (studentSnapshot.exists()) {
+                    const studentData = studentSnapshot.val();
+                    const newPoints = (studentData.points || 0) + points;
+
+                    // Update points for the student
+                    await update(studentRef, { points: newPoints });
+
+                    // Update leaderboard
+                    const leaderboardRef = ref(db, `schools/${studentData.schoolCode}/leaderboard/${studentUid}`);
+                    await set(leaderboardRef, { name: studentData.fullName, points: newPoints });
+
+                    alert('Points adjusted successfully!');
+                    loadIndividualLeaderboard(studentData.schoolCode); // Reload leaderboard to reflect changes
+                }
+            } catch (error) {
+                console.error('Failed to adjust points:', error);
+            }
+        }
+    }
+
+    // Award badges to a student (Only for teachers)
+    window.awardBadge = async function (badgeName) {
+        const studentUid = document.getElementById('student-list').value;
+
+        if (studentUid) {
+            try {
+                const badgesRef = ref(db, `users/${studentUid}/badges`);
+                const badgeSnapshot = await get(badgesRef);
+
+                let badges = badgeSnapshot.exists() ? badgeSnapshot.val() : [];
+                if (!badges.includes(badgeName)) {
+                    badges.push(badgeName);
+                    await set(badgesRef, badges);
+
+                    alert('Badge awarded successfully!');
+                } else {
+                    alert('Student already has this badge.');
+                }
+            } catch (error) {
+                console.error('Failed to award badge:', error);
+            }
+        }
+    }
+
+    // Update avatar
+    window.updateAvatar = async function () {
+        const avatarUrl = document.getElementById('avatar-url').value;
+        const user = auth.currentUser;
+
+        if (user) {
+            try {
+                await update(ref(db, 'users/' + user.uid), { avatarUrl: avatarUrl });
+                document.getElementById('avatar').src = avatarUrl;
+                alert('Avatar updated successfully!');
+            } catch (error) {
+                alert('Failed to update avatar: ' + error.message);
+            }
+        }
+    }
+
+    // Load students for group assignment (For teachers)
+    async function loadStudentsForGroupAssignment(schoolCode) {
+        try {
+            const usersRef = ref(db, 'users');
+            const snapshot = await get(usersRef);
+            const studentGroupList = document.getElementById('student-group-list');
+            studentGroupList.innerHTML = ''; // Clear the list first
+
+            snapshot.forEach((childSnapshot) => {
+                const userData = childSnapshot.val();
+                if (userData.schoolCode === schoolCode && userData.role === 'student') {
+                    const option = document.createElement('option');
+                    option.value = childSnapshot.key; // Use student's UID as value
+                    option.textContent = userData.fullName; // Show student's full name in the dropdown
+                    studentGroupList.appendChild(option);
+                }
+            });
+
+            if (studentGroupList.options.length === 0) {
+                const option = document.createElement('option');
+                option.textContent = 'No students found';
+                option.disabled = true;
+                studentGroupList.appendChild(option);
+            }
+        } catch (error) {
+            console.error('Failed to load students for group assignment:', error);
+        }
+    }
+
+    // Assign a student to a team
+    window.assignTeam = async function () {
+        const studentUid = document.getElementById('student-group-list').value;
+        const teamName = document.getElementById('team-name').value;
+        const schoolCode = (await get(ref(db, 'users/' + studentUid))).val().schoolCode;
+
+        if (studentUid && teamName) {
+            try {
+                await update(ref(db, 'users/' + studentUid), { teamName: teamName });
+
+                // Update the team in the school's data
+                const teamRef = ref(db, `schools/${schoolCode}/teams/${teamName}/members`);
+                const teamSnapshot = await get(teamRef);
+                const members = teamSnapshot.exists() ? teamSnapshot.val() : [];
+                members.push(studentUid);
+
+                await set(ref(db, `schools/${schoolCode}/teams/${teamName}`), { members: members });
+                alert('Student assigned to team: ' + teamName);
+                loadTeams(schoolCode);
+            } catch (error) {
+                alert('Failed to assign team: ' + error.message);
+            }
+        }
+    }
+
+    // Load teams and display them (For teachers)
+    async function loadTeams(schoolCode) {
+        try {
+            const teamsRef = ref(db, `schools/${schoolCode}/teams`);
+            const snapshot = await get(teamsRef);
+            const teamsList = document.getElementById('teams-list');
+            const teamSelect = document.getElementById('team-select');
+            teamsList.innerHTML = ''; // Clear the list first
+            teamSelect.innerHTML = ''; // Clear the list first
+
+            snapshot.forEach((childSnapshot) => {
+                const teamData = childSnapshot.val();
+                const teamContainer = document.createElement('div');
+                teamContainer.className = 'neumorphic p-4 mb-4';
+                const h4 = document.createElement('h4');
+                h4.textContent = `Team: ${childSnapshot.key}`;
+                h4.className = 'text-lg font-semibold mb-2 text-indigo-600';
+                teamContainer.appendChild(h4);
+
+                const membersList = document.createElement('ul');
+                membersList.className = 'space-y-1';
+
+                teamData.members.forEach((memberUid) => {
+                    const memberRef = ref(db, `users/${memberUid}`);
+                    get(memberRef).then((memberSnapshot) => {
+                        const memberData = memberSnapshot.val();
+                        const li = document.createElement('li');
+                        li.textContent = memberData.fullName;
+                        li.className = 'text-gray-700';
+                        membersList.appendChild(li);
+                    });
+                });
+
+                teamContainer.appendChild(membersList);
+                teamsList.appendChild(teamContainer);
+
+                const option = document.createElement('option');
+                option.value = childSnapshot.key;
+                option.textContent = `Team: ${childSnapshot.key}`;
+                teamSelect.appendChild(option);
+            });
+
+            if (teamsList.children.length === 0) {
+                const noTeamsMessage = document.createElement('p');
+                noTeamsMessage.textContent = 'No teams found';
+                noTeamsMessage.className = 'text-gray-500 italic';
+                teamsList.appendChild(noTeamsMessage);
+            }
+
+        } catch (error) {
+            console.error('Failed to load teams:', error);
+        }
+    }
+
+    // Load the team of the logged-in student and display it (For students)
+    async function loadStudentTeam(uid) {
+        try {
+            const userRef = ref(db, 'users/' + uid);
+            const userSnapshot = await get(userRef);
+            if (userSnapshot.exists()) {
+                const userData = userSnapshot.val();
+                const teamName = userData.teamName;
+                const schoolCode = userData.schoolCode;
+
+                if (teamName) {
+                    const teamsRef = ref(db, `schools/${schoolCode}/teams/${teamName}`);
+                    const teamSnapshot = await get(teamsRef);
+
+                    if (teamSnapshot.exists()) {
+                        const teamData = teamSnapshot.val();
+                        const teamList = document.getElementById('student-team-members');
+                        teamList.innerHTML = ''; // Clear the list first
+
+                        const teamNameElement = document.getElementById('student-team-name');
+                        teamNameElement.textContent = teamName;
+
+                        teamData.members.forEach((memberId) => {
+                            const memberRef = ref(db, `users/${memberId}`);
+                            get(memberRef).then((memberSnapshot) => {
+                                const memberData = memberSnapshot.val();
+                                const li = document.createElement('li');
+                                li.textContent = memberData.fullName;
+                                li.className = 'text-gray-700';
+                                teamList.appendChild(li);
+                            });
+                        });
+
+                        // Load team messages
+                        loadTeamMessages(schoolCode, teamName);
+
+                        // Display the student team info section
+                        document.getElementById('student-team-info').style.display = 'block';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load student team:', error);
+        }
+    }
+
+    // Load team messages and set up message listeners
+    async function loadTeamMessages(schoolCode, teamName) {
+        try {
+            const messagesRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages`);
+            const messagesList = document.getElementById('student-messages-list');
+            messagesList.innerHTML = '';
+
+            onValue(messagesRef, (snapshot) => {
+                messagesList.innerHTML = ''; // Clear the list before appending
+                snapshot.forEach((childSnapshot) => {
+                    const messageData = childSnapshot.val();
+                    const messageContainer = document.createElement('div');
+                    messageContainer.className = 'message-container';
+
+                    const messageHeader = document.createElement('div');
+                    messageHeader.className = 'message-header';
+
+                    const messageText = document.createElement('div');
+                    messageText.className = 'message-text';
+                    messageText.textContent = messageData.text;
+
+                    const messageSender = document.createElement('div');
+                    messageSender.className = 'message-sender';
+                    messageSender.textContent = messageData.sender;
+
+                    const messageTimestamp = document.createElement('div');
+                    messageTimestamp.textContent = new Date(messageData.timestamp).toLocaleString();
+                    messageTimestamp.className = 'text-sm text-gray-500';
+
+                    const messageActions = document.createElement('div');
+                    messageActions.className = 'message-actions flex space-x-2 mt-2';
+
+                    const currentLikes = Array.isArray(messageData.likes) ? messageData.likes : [];
+                    const currentDislikes = Array.isArray(messageData.dislikes) ? messageData.dislikes : [];
+                    const likeButton = document.createElement('button');
+                    likeButton.textContent = `👍 Like (${currentLikes.length})`;
+                    likeButton.className = 'neumorphic-button text-sm py-1 px-2 text-blue-600';
+                    likeButton.onclick = () => toggleLikeDislike(schoolCode, teamName, childSnapshot.key, currentLikes, currentDislikes, true);
+
+                    const dislikeButton = document.createElement('button');
+                    dislikeButton.textContent = `👎 Dislike (${currentDislikes.length})`;
+                    dislikeButton.className = 'neumorphic-button text-sm py-1 px-2 text-red-600';
+                    dislikeButton.onclick = () => toggleLikeDislike(schoolCode, teamName, childSnapshot.key, currentLikes, currentDislikes, false);
+
+                    messageActions.appendChild(likeButton);
+                    messageActions.appendChild(dislikeButton);
+
+                    messageHeader.appendChild(messageSender);
+                    messageHeader.appendChild(messageTimestamp);
+
+                    messageContainer.appendChild(messageHeader);
+                    messageContainer.appendChild(messageText);
+                    messageContainer.appendChild(messageActions);
+
+                    if (currentLikes.length > 0) {
+                        const likesList = document.createElement('div');
+                        likesList.className = 'message-likes-dislikes text-sm text-blue-600';
+                        likesList.textContent = `${currentLikes.join(", ")} liked this`;
+                        messageContainer.appendChild(likesList);
+                    }
+
+                    if (currentDislikes.length > 0) {
+                        const dislikesList = document.createElement('div');
+                        dislikesList.className = 'message-likes-dislikes text-sm text-red-600';
+                        dislikesList.textContent = `${currentDislikes.join(", ")} disliked this`;
+                        messageContainer.appendChild(dislikesList);
+                    }
+
+                    messagesList.appendChild(messageContainer);
+                });
+            });
+        } catch (error) {
+            console.error('Failed to load team messages:', error);
+        }
+    }
+
+    // Toggle like or dislike on a message
+    async function toggleLikeDislike(schoolCode, teamName, messageId, currentLikes, currentDislikes, isLike) {
+        const user = auth.currentUser;
+        const userRef = await get(ref(db, 'users/' + user.uid));
+        const userData = userRef.val();
+
+        if (isLike) {
+            if (currentLikes.includes(userData.fullName)) {
+                alert('You have already liked this message.');
+            } else {
+                // Remove dislike if present
+                if (currentDislikes.includes(userData.fullName)) {
+                    const dislikeIndex = currentDislikes.indexOf(userData.fullName);
+                    currentDislikes.splice(dislikeIndex, 1);
+                }
+                currentLikes.push(userData.fullName);
+                const messageRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages/${messageId}`);
+                await update(messageRef, { likes: currentLikes, dislikes: currentDislikes });
+                alert('You liked this message.');
+            }
+        } else {
+            if (currentDislikes.includes(userData.fullName)) {
+                alert('You have already disliked this message.');
+            } else {
+                // Remove like if present
+                if (currentLikes.includes(userData.fullName)) {
+                    const likeIndex = currentLikes.indexOf(userData.fullName);
+                    currentLikes.splice(likeIndex, 1);
+                }
+                currentDislikes.push(userData.fullName);
+                const messageRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages/${messageId}`);
+                await update(messageRef, { likes: currentLikes, dislikes: currentDislikes });
+                alert('You disliked this message.');
+            }
+        }
+    }
+
+    // Send a message in a team (Relatedness mode)
+    window.sendMessage = async function () {
+        const user = auth.currentUser;
+        const messageText = document.getElementById('team-message-input').value;
+
+        if (!messageText.trim()) {
+            alert('Message cannot be empty');
+            return;
+        }
+
+        try {
+            const userRef = ref(db, 'users/' + user.uid);
+            const userSnapshot = await get(userRef);
+            const userData = userSnapshot.val();
+            const teamName = userData.teamName;
+            const schoolCode = userData.schoolCode;
+
+            const newMessageRef = push(ref(db, `schools/${schoolCode}/teams/${teamName}/messages`));
+            await set(newMessageRef, {
+                text: messageText,
+                sender: userData.fullName,
+                timestamp: Date.now(),
+                likes: [],
+                dislikes: []
+            });
+
+            document.getElementById('team-message-input').value = ''; // Clear the input field
+            alert('Message sent successfully!');
+        } catch (error) {
+            console.error('Failed to send message:', error);
+        }
+    }
+
+    // Award points to a team (For teachers)
+    window.awardTeamPoints = async function (points) {
+        const teamName = document.getElementById('team-select').value;
+        const schoolCode = (await get(ref(db, 'users/' + auth.currentUser.uid))).val().schoolCode;
+
+        if (teamName) {
+            try {
+                const teamsRef = ref(db, `schools/${schoolCode}/teams/${teamName}`);
+                const teamSnapshot = await get(teamsRef);
+
+                if (teamSnapshot.exists()) {
+                    const teamData = teamSnapshot.val();
+                    const newPoints = (teamData.points || 0) + points;
+
+                    // Update points for the team
+                    await update(teamsRef, { points: newPoints });
+
+                    alert('Points awarded to the team successfully!');
+                    loadTeams(schoolCode); // Reload teams to reflect changes
+                }
+            } catch (error) {
+                console.error('Failed to award points to the team:', error);
+            }
+        }
+    }
+
+    // New functions for lesson management
+    window.showDashboard = function() {
+        document.getElementById('lesson-content').style.display = 'block';
+        document.getElementById('lessons-section').style.display = 'none';
+        document.getElementById('lesson-management').style.display = 'none';
+    }
+
+    window.showLessons = function() {
+        document.getElementById('lesson-content').style.display = 'none';
+        document.getElementById('lessons-section').style.display = 'block';
+        document.getElementById('lesson-management').style.display = 'none';
+        loadLessons();
+    }
+
+    window.showLessonManagement = function() {
+        document.getElementById('lesson-content').style.display = 'none';
+        document.getElementById('lessons-section').style.display = 'none';
+        document.getElementById('lesson-management').style.display = 'block';
+        loadLessonManagement();
+    }
+
+    async function loadLessons() {
+        const user = auth.currentUser;
+        const userRef = ref(db, 'users/' + user.uid);
+        const userSnapshot = await get(userRef);
+        const userData = userSnapshot.val();
+        const schoolCode = userData.schoolCode;
+
+        const lessonsRef = ref(db, `schools/${schoolCode}/lessons`);
+        const lessonsSnapshot = await get(lessonsRef);
+        const lessonsList = document.getElementById('lessons-list');
+        lessonsList.innerHTML = '';
+
+        lessonsSnapshot.forEach((lessonSnapshot) => {
+            const lessonData = lessonSnapshot.val();
+            const lessonElement = createLessonElement(lessonData, lessonSnapshot.key);
+            lessonsList.appendChild(lessonElement);
+        });
+    }
+
+    function createLessonElement(lessonData, lessonId) {
+        const lessonElement = document.createElement('div');
+        lessonElement.className = 'neumorphic p-4';
+        lessonElement.innerHTML = `
+            <h4 class="text-xl font-semibold mb-2">${lessonData.title}</h4>
+            <p class="mb-2"><strong>Task:</strong> ${lessonData.task}</p>
+            <p class="mb-2">${lessonData.content}</p>
+            ${lessonData.imageUrl ? `<img src="${lessonData.imageUrl}" alt="Lesson Image" class="mb-2 max-w-full h-auto">` : ''}
+            ${lessonData.pdfUrl ? `<p class="mb-2"><a href="${lessonData.pdfUrl}" target="_blank" class="text-indigo-600">View PDF</a></p>` : ''}
+            ${lessonData.link ? `<p class="mb-2"><a href="${lessonData.link}" target="_blank" class="text-indigo-600">External Link</a></p>` : ''}
+        `;
+        return lessonElement;
+    }
+
+    async function loadLessonManagement() {
+        const user = auth.currentUser;
+        const userRef = ref(db, 'users/' + user.uid);
+        const userSnapshot = await get(userRef);
+        const userData = userSnapshot.val();
+        const schoolCode = userData.schoolCode;
+
+        const lessonsRef = ref(db, `schools/${schoolCode}/lessons`);
+        const lessonsSnapshot = await get(lessonsRef);
+        const lessonsList = document.getElementById('lessons-management-list');
+        lessonsList.innerHTML = '';
+
+        lessonsSnapshot.forEach((lessonSnapshot) => {
+            const lessonData = lessonSnapshot.val();
+            const lessonElement = createLessonManagementElement(lessonData, lessonSnapshot.key);
+            lessonsList.appendChild(lessonElement);
+        });
+    }
+
+    function createLessonManagementElement(lessonData, lessonId) {
+        const lessonElement = document.createElement('div');
+        lessonElement.className = 'neumorphic p-4';
+        lessonElement.innerHTML = `
+            <h4 class="text-xl font-semibold mb-2">${lessonData.title}</h4>
+            <p class="mb-2"><strong>Task:</strong> ${lessonData.task}</p>
+            <button onclick="editLesson('${lessonId}')" class="neumorphic-button py-1 px-2 text-indigo-600 font-semibold mr-2">Edit</button>
+            <button onclick="deleteLesson('${lessonId}')" class="neumorphic-button py-1 px-2 text-red-600 font-semibold">Delete</button>
+        `;
+        return lessonElement;
+    }
+
+    window.showAddLessonForm = function() {
+        document.getElementById('add-lesson-form').style.display = 'block';
+    }
+
+    window.saveLesson = async function() {
+    console.log("saveLesson function called");
+    
+    // Check if the form is visible
+    const form = document.getElementById('add-lesson-form');
+    if (!form || form.style.display === 'none') {
+        console.error('Lesson form is not visible or does not exist');
+        alert('Please open the lesson form before saving.');
+        return;
+    }
+
+    // Get all form elements
+    const titleElement = document.getElementById('lesson-title');
+    const taskElement = document.getElementById('lesson-task');
+    const contentElement = document.getElementById('lesson-content');
+    const imageElement = document.getElementById('lesson-image');
+    const pdfElement = document.getElementById('lesson-pdf');
+    const linkElement = document.getElementById('lesson-link');
+
+    // Log the elements to check if they exist
+    console.log("Form elements:", {
+        titleElement,
+        taskElement,
+        contentElement,
+        imageElement,
+        pdfElement,
+        linkElement
+    });
+
+    // Check if all elements exist
+    if (!titleElement || !taskElement || !contentElement || !imageElement || !pdfElement || !linkElement) {
+        console.error('One or more form elements are missing');
+        alert('There was an error loading the form. Please refresh the page and try again.');
+        return;
+    }
+
+    // Get values from form elements, with additional checks
+    const title = titleElement.value ? titleElement.value.trim() : '';
+    const task = taskElement.value ? taskElement.value.trim() : '';
+    const content = contentElement.value ? contentElement.value.trim() : '';
+    const imageFile = imageElement.files ? imageElement.files[0] : null;
+    const pdfFile = pdfElement.files ? pdfElement.files[0] : null;
+    const link = linkElement.value ? linkElement.value.trim() : '';
+
+    // Log the values to check if they're correctly retrieved
+    console.log("Form values:", { title, task, content, imageFile, pdfFile, link });
+
+    // Check if title is provided (assuming it's the only required field)
+    if (!title) {
+        alert('Please provide a title for the lesson');
+        return;
+    }
+
+    try {
+        // Get current user and school code
+        const user = auth.currentUser;
+        if (!user) {
+            throw new Error('No authenticated user found');
+        }
+        const userRef = ref(db, 'users/' + user.uid);
+        const userSnapshot = await get(userRef);
+        if (!userSnapshot.exists()) {
+            throw new Error('User data not found');
+        }
+        const userData = userSnapshot.val();
+        const schoolCode = userData.schoolCode;
+
+        let imageUrl = null;
+        let pdfUrl = null;
+
+        // Upload image if provided
+        if (imageFile) {
+            const imageRef = storageRef(storage, `schools/${schoolCode}/lessons/${title}/${imageFile.name}`);
+            const imageSnapshot = await uploadBytes(imageRef, imageFile);
+            imageUrl = await getDownloadURL(imageSnapshot.ref);
+        }
+
+        // Upload PDF if provided
+        if (pdfFile) {
+            const pdfRef = storageRef(storage, `schools/${schoolCode}/lessons/${title}/${pdfFile.name}`);
+            const pdfSnapshot = await uploadBytes(pdfRef, pdfFile);
+            pdfUrl = await getDownloadURL(pdfSnapshot.ref);
+        }
+
+        // Prepare lesson data
+        const lessonData = {
+            title,
+            task: task || null,
+            content: content || null,
+            imageUrl,
+            pdfUrl,
+            link: link || null,
+            createdBy: user.uid,
+            createdAt: Date.now()
+        };
+
+        // Remove undefined or null values
+        Object.keys(lessonData).forEach(key => 
+            (lessonData[key] === undefined || lessonData[key] === null) && delete lessonData[key]
+        );
+
+        console.log("Lesson data to be saved:", lessonData);
+
+        // Save lesson to Firebase Realtime Database
+        const newLessonRef = push(ref(db, `schools/${schoolCode}/lessons`));
+        await set(newLessonRef, lessonData);
+
+        console.log("Lesson saved successfully");
+        alert('Lesson saved successfully!');
+        
+        // Clear form fields
+        titleElement.value = '';
+        taskElement.value = '';
+        contentElement.value = '';
+        imageElement.value = '';
+        pdfElement.value = '';
+        linkElement.value = '';
+
+        // Reload lesson management view
+        loadLessonManagement();
+    } catch (error) {
+        console.error('Error saving lesson:', error);
+        console.error('Error details:', error.code, error.message);
+        console.error('Lesson data:', {
+            title,
+            task,
+            content,
+            imageFile: imageFile ? imageFile.name : null,
+            pdfFile: pdfFile ? pdfFile.name : null,
+            link,
+            schoolCode: auth.currentUser ? (await get(ref(db, 'users/' + auth.currentUser.uid))).val()?.schoolCode : null
+        });
+        alert('Failed to save lesson. Please check the console for more details and try again.');
+    }
+}
+
+
+    window.editLesson = async function(lessonId) {
+        const user = auth.currentUser;
+        const userRef = ref(db, 'users/' + user.uid);
+        const userSnapshot = await get(userRef);
+        const userData = userSnapshot.val();
+        const schoolCode = userData.schoolCode;
+
+        const lessonRef = ref(db, `schools/${schoolCode}/lessons/${lessonId}`);
+        const lessonSnapshot = await get(lessonRef);
+        const lessonData = lessonSnapshot.val();
+
+        document.getElementById('lesson-title').value = lessonData.title;
+        document.getElementById('lesson-task').value = lessonData.task;
+        document.getElementById('lesson-content').value = lessonData.content;
+        document.getElementById('lesson-link').value = lessonData.link || '';
+
+        showAddLessonForm();
+
+        // Change the save button to update
+        const saveButton = document.querySelector('#add-lesson-form button');
+        saveButton.textContent = 'Update Lesson';
+        saveButton.onclick = () => updateLesson(lessonId);
+    }
+
+    async function updateLesson(lessonId) {
+        const title = document.getElementById('lesson-title').value;
+        const task = document.getElementById('lesson-task').value;
+        const content = document.getElementById('lesson-content').value;
+        const imageFile = document.getElementById('lesson-image').files[0];
+        const pdfFile = document.getElementById('lesson-pdf').files[0];
+        const link = document.getElementById('lesson-link').value;
+
+        const user = auth.currentUser;
+        const userRef = ref(db, 'users/' + user.uid);
+        const userSnapshot = await get(userRef);
+        const userData = userSnapshot.val();
+        const schoolCode = userData.schoolCode;
+
+        const lessonRef = ref(db, `schools/${schoolCode}/lessons/${lessonId}`);
+        const lessonSnapshot = await get(lessonRef);
+        const currentLessonData = lessonSnapshot.val();
+
+        let imageUrl = currentLessonData.imageUrl;
+        let pdfUrl = currentLessonData.pdfUrl;
+
+        if (imageFile) {
+            imageUrl = await uploadFile(imageFile, 'images');
+        }
+
+        if (pdfFile) {
+            pdfUrl = await uploadFile(pdfFile, 'pdfs');
+        }
+
+        const updatedLessonData = {
+            ...currentLessonData,
+            title,
+            task,
+            content,
+            imageUrl,
+            pdfUrl,
+            link,
+            updatedAt: Date.now()
+        };
+
+        await set(lessonRef, updatedLessonData);
+
+        alert('Lesson updated successfully!');
+        loadLessonManagement();
+
+        // Reset the form and button
+        document.getElementById('add-lesson-form').reset();
+        const saveButton = document.querySelector('#add-lesson-form button');
+        saveButton.textContent = 'Save Lesson';
+        saveButton.onclick = saveLesson;
+    }
+
+    window.deleteLesson = async function(lessonId) {
+        if (confirm('Are you sure you want to delete this lesson?')) {
+            const user = auth.currentUser;
+            const userRef = ref(db, 'users/' + user.uid);
+            const userSnapshot = await get(userRef);
+            const userData = userSnapshot.val();
+            const schoolCode = userData.schoolCode;
+
+            const lessonRef = ref(db, `schools/${schoolCode}/lessons/${lessonId}`);
+            await set(lessonRef, null);
+
+            alert('Lesson deleted successfully!');
+            loadLessonManagement();
+        }
+    }
+
+    // Function to preview uploaded image
+    function previewImage(event, previewId) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            const output = document.getElementById(previewId);
+            output.src = reader.result;
+            output.parentElement.style.display = 'block';
+        }
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    // Function to update file input label
+    function updateFileLabel(event, labelId) {
+        const label = document.getElementById(labelId);
+        label.textContent = event.target.files[0].name;
+    }
+
+    // Handle logout
+    window.logout = async function () {
+        try {
+            await signOut(auth);
+            document.getElementById('auth-container').style.display = 'flex';
+            document.getElementById('sidebar').style.display = 'none';
+            document.getElementById('main-content').style.display = 'none';
+        } catch (error) {
+            alert('Logout failed: ' + error.message);
+        }
+    }
+
+    // Event listeners
+    document.addEventListener("DOMContentLoaded", function () {
+        // Display gamification mode selection when registering as a teacher
+        document.getElementById('register-role').addEventListener('change', function() {
+            const role = this.value;
+            const gamificationModeField = document.getElementById('register-gamification-mode');
+            if (role === 'teacher') {
+                gamificationModeField.style.display = 'block';
+            } else {
+                gamificationModeField.style.display = 'none';
             }
         });
 
-        // Initial setup
-        showLoginForm();
-    </script>
+        // Image preview for lesson
+        document.getElementById('lesson-image').addEventListener('change', function(event) {
+            previewImage(event, 'lesson-image-preview');
+        });
+
+        // Update file label for lesson PDF
+        document.getElementById('lesson-pdf').addEventListener('change', function(event) {
+            updateFileLabel(event, 'lesson-pdf-label');
+        });
+    });
+
+    // Make functions available globally
+    window.login = login;
+    window.register = register;
+    window.logout = logout;
+    window.showDashboard = showDashboard;
+    window.showLessons = showLessons;
+    window.showLessonManagement = showLessonManagement;
+    window.showAddLessonForm = showAddLessonForm;
+    window.saveLesson = saveLesson;
+    window.editLesson = editLesson;
+    window.deleteLesson = deleteLesson;
+</script>
 </body>
 </html>
