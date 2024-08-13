@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-       /* General Styles */
+      /* General Styles */
 body {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(135deg, #a476ed, #c469e9, #fa6c6c);
@@ -116,6 +116,16 @@ body {
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+    #sidebar {
+        width: 50%;
+        height: auto;
+    }
+    #main-content {
+        margin-left: 50%;
+    }
+}
+
 @media (max-width: 768px) {
     #sidebar {
         width: 100%;
@@ -138,6 +148,58 @@ body {
     button, .neumorphic-button {
         width: 100%;
         margin-bottom: 10px;
+    }
+
+    h1, h2, h3 {
+        font-size: 1.5rem;
+    }
+
+    p, span, li {
+        font-size: 0.875rem;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"], select, textarea {
+        padding: 8px;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h2, h3 {
+        font-size: 1.25rem;
+    }
+    .neumorphic, .neumorphic-inset {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    button, .neumorphic-button {
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+    .progress-bar {
+        height: 8px;
+    }
+    .grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+    #sidebar {
+        padding: 10px;
+    }
+    #main-content {
+        padding: 10px;
+    }
+
+    h1, h2, h3 {
+        font-size: 1.25rem;
+    }
+
+    p, span, li {
+        font-size: 0.75rem;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"], select, textarea {
+        padding: 6px;
+        font-size: 0.75rem;
     }
 }
 
@@ -275,6 +337,14 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
         opacity: 0;
     }
 }
+
+/* Make Images Responsive */
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 15px;
+}
+
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
