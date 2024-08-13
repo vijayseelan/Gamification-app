@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      /* General Styles */
+     /* General Styles */
 body {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(135deg, #a476ed, #c469e9, #fa6c6c);
@@ -54,6 +54,7 @@ body {
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
+    margin: 10px; /* Adjust this margin for better spacing */
 }
 
 .neumorphic-button:before, button:before {
@@ -102,13 +103,28 @@ body {
     backdrop-filter: blur(10px);
     border-right: 1px solid rgba(255, 255, 255, 0.2);
     overflow-y: auto;
-    max-height: 80vh;
+    height: 100vh; /* Ensures it takes the full height of the viewport */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Space between top content and bottom logout button */
 }
 
 /* Main Content */
 #main-content {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(5px);
+    margin-left: 250px; /* Align with the sidebar width */
+}
+
+/* Full Height Layout */
+.flex {
+    display: flex;
+    flex-direction: row; /* Ensures content aligns horizontally */
+    height: 100vh; /* Full height for both sidebar and main content */
+}
+
+#sidebar, #main-content {
+    height: 100%;
 }
 
 /* Auth Container */
@@ -1728,6 +1744,25 @@ document.querySelectorAll('button, .neumorphic-button').forEach(button => {
         }, 300);
     });
 });
+
+window.addEventListener('resize', adjustLayout);
+
+function adjustLayout() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    
+    if (window.innerWidth <= 768) {
+        sidebar.style.height = 'auto'; // Let it be as tall as its content
+        mainContent.style.marginLeft = '0';
+    } else {
+        sidebar.style.height = '100vh'; // Full height on larger screens
+        mainContent.style.marginLeft = '250px'; // Adjust margin based on sidebar width
+    }
+}
+
+// Initial adjustment on page load
+adjustLayout();
+
 </script>
 </body>
 </html>
