@@ -182,6 +182,7 @@ body {
     padding: 8px 16px;
 }
 
+
 #avatar {
     border: 4px solid white;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
@@ -258,6 +259,48 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
 .bg-pink-400 {
     background: linear-gradient(135deg, #E91E63, #F48FB1);
 }
+
+/* Add these styles to your existing CSS */
+
+.lesson-card {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.lesson-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.lesson-card-header {
+    padding: 1.5rem;
+    cursor: pointer;
+}
+
+.lesson-card-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.lesson-card-content.expanded {
+    max-height: 1000px; /* Adjust this value based on your content */
+    transition: max-height 0.5s ease-in;
+}
+.lesson-card-body {
+    padding: 0 1.5rem 1.5rem;
+}
+
+.lesson-card-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
 
 /* Ripple effect for buttons */
 .ripple {
@@ -421,7 +464,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
         <!-- New Lessons Section -->
         <div id="lessons-section" class="hidden space-y-8">
             <h3 class="text-2xl font-semibold text-center text-indigo-600 mb-6">Lessons</h3>
-            <div id="lessons-list" class="space-y-4"></div>
+            <div id="lessons-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
         <!-- New Lesson Management Section (Visible to Teachers Only) -->
@@ -431,7 +474,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
             <div id="add-lesson-form" class="hidden space-y-4">
                 <input type="text" id="lesson-title" placeholder="Lesson Title (required)" class="neumorphic-inset w-full p-2" required>
                 <input type="text" id="lesson-task" placeholder="Lesson Task (optional)" class="neumorphic-inset w-full p-2">
-                <textarea id="lesson-content" placeholder="Lesson Content (optional)" class="neumorphic-inset w-full p-2 h-32"></textarea>
+                <textarea id="lesson-content" placeholder="Lesson Content" class="neumorphic-inset w-full p-2 h-32"></textarea>
                 <input type="file" id="lesson-image" accept="image/*" class="neumorphic-inset w-full p-2">
                 <div id="lesson-image-preview-container" class="hidden mt-2">
                     <img id="lesson-image-preview" class="max-w-full h-auto" alt="Image preview" />
@@ -632,10 +675,10 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                 <h3 class="text-lg font-semibold mb-2 text-indigo-600">Competence Mode</h3>
                 <ul class="space-y-2">
                     ${commonItems}
-                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Points</li>
-                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Badges</li>
-                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Leaderboard</li>
-                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Levels</li>
+                    
+                    
+                    
+                    
                 </ul>
             `;
         } else if (mode === 'autonomy') {
@@ -643,7 +686,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                 <h3 class="text-lg font-semibold mb-2 text-indigo-600">Autonomy Mode</h3>
                 <ul class="space-y-2">
                     ${commonItems}
-                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Avatar Customization</li>
+                    
                 </ul>
             `;
         } else if (mode === 'relatedness') {
@@ -651,9 +694,9 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                 <h3 class="text-lg font-semibold mb-2 text-indigo-600">Relatedness Mode</h3>
                 <ul class="space-y-2">
                     ${commonItems}
-                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Teams</li>
-                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Messages</li>
-                    <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Leaderboard</li>
+                    
+                    
+                    
                 </ul>
             `;
         }
@@ -665,12 +708,12 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                     <ul class="space-y-2">
                         <li class="text-gray-700 hover:text-indigo-600 cursor-pointer" onclick="showLessonManagement()">Manage Lessons</li>
                         ${mode === 'competence' ? `
-                            <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Award Points</li>
-                            <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Award Badges</li>
+                            
+                            
                         ` : ''}
                         ${mode === 'relatedness' ? `
-                            <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Manage Teams</li>
-                            <li class="text-gray-700 hover:text-indigo-600 cursor-pointer">Award Team Points</li>
+                            
+                            
                         ` : ''}
                     </ul>
                 </div>
@@ -799,7 +842,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
             snapshot.forEach((childSnapshot) => {
                 const badgeName = childSnapshot.val();
                 const badge = document.createElement('div');
-                badge.className = 'neumorphic p-2 rounded-full';
+                badge.className = 'neumorphic p-2';
                 const img = document.createElement('img');
                 img.src = `images/badges/${badgeName.toLowerCase().replace(/ /g, '-')}.png`;
                 img.alt = badgeName;
@@ -1262,11 +1305,25 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     }
 
     window.showLessons = function() {
-        document.getElementById('lesson-content').style.display = 'none';
-        document.getElementById('lessons-section').style.display = 'block';
-        document.getElementById('lesson-management').style.display = 'none';
-        loadLessons();
+    document.getElementById('lesson-content').style.display = 'none';
+    document.getElementById('lessons-section').style.display = 'block';
+    document.getElementById('lesson-management').style.display = 'none';
+    loadLessons();
+}
+
+function toggleLessonDetails(lessonId) {
+    const content = document.getElementById(`lesson-content-${lessonId}`);
+    if (content) {
+        content.classList.toggle('expanded');
+        
+        // Toggle max-height for smooth animation
+        if (content.style.maxHeight) {
+            content.style.maxHeight = null;
+        } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+        }
     }
+}
 
     window.showLessonManagement = function() {
         document.getElementById('lesson-content').style.display = 'none';
@@ -1276,37 +1333,64 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     }
 
     async function loadLessons() {
-        const user = auth.currentUser;
-        const userRef = ref(db, 'users/' + user.uid);
-        const userSnapshot = await get(userRef);
-        const userData = userSnapshot.val();
-        const schoolCode = userData.schoolCode;
+    const user = auth.currentUser;
+    const userRef = ref(db, 'users/' + user.uid);
+    const userSnapshot = await get(userRef);
+    const userData = userSnapshot.val();
+    const schoolCode = userData.schoolCode;
 
-        const lessonsRef = ref(db, `schools/${schoolCode}/lessons`);
-        const lessonsSnapshot = await get(lessonsRef);
-        const lessonsList = document.getElementById('lessons-list');
-        lessonsList.innerHTML = '';
+    const lessonsRef = ref(db, `schools/${schoolCode}/lessons`);
+    const lessonsSnapshot = await get(lessonsRef);
+    const lessonsList = document.getElementById('lessons-list');
+    lessonsList.innerHTML = '';
 
-        lessonsSnapshot.forEach((lessonSnapshot) => {
-            const lessonData = lessonSnapshot.val();
-            const lessonElement = createLessonElement(lessonData, lessonSnapshot.key);
-            lessonsList.appendChild(lessonElement);
-        });
-    }
+    lessonsSnapshot.forEach((lessonSnapshot) => {
+        const lessonData = lessonSnapshot.val();
+        const lessonElement = createLessonElement(lessonData, lessonSnapshot.key);
+        lessonsList.appendChild(lessonElement);
+    });
+}
 
-    function createLessonElement(lessonData, lessonId) {
-        const lessonElement = document.createElement('div');
-        lessonElement.className = 'neumorphic p-4';
-        lessonElement.innerHTML = `
-            <h4 class="text-xl font-semibold mb-2">${lessonData.title}</h4>
-            <p class="mb-2"><strong>Task:</strong> ${lessonData.task}</p>
-            <p class="mb-2">${lessonData.content}</p>
-            ${lessonData.imageUrl ? `<img src="${lessonData.imageUrl}" alt="Lesson Image" class="mb-2 max-w-full h-auto">` : ''}
-            ${lessonData.pdfUrl ? `<p class="mb-2"><a href="${lessonData.pdfUrl}" target="_blank" class="text-indigo-600">View PDF</a></p>` : ''}
-            ${lessonData.link ? `<p class="mb-2"><a href="${lessonData.link}" target="_blank" class="text-indigo-600">External Link</a></p>` : ''}
-        `;
-        return lessonElement;
-    }
+function createLessonElement(lessonData, lessonId) {
+    console.log("Creating lesson element with data:", lessonData);  // Debug log
+    
+    const lessonElement = document.createElement('div');
+    lessonElement.className = 'lesson-card neumorphic';
+    
+    const title = lessonData.title || 'Untitled Lesson';
+    const task = lessonData.task || 'No task specified';
+    const content = lessonData.content || 'No content available';
+    const imageUrl = lessonData.imageUrl || '';
+    const pdfUrl = lessonData.pdfUrl || '';
+    const link = lessonData.link || '';
+
+    lessonElement.innerHTML = `
+        <div class="lesson-card-header">
+            ${imageUrl ? `<img src="${imageUrl}" alt="${title}" class="lesson-card-image">` : ''}
+            <h4 class="text-xl font-semibold mb-2">${title}</h4>
+            <p class="text-gray-600">${task}</p>
+        </div>
+        <div id="lesson-content-${lessonId}" class="lesson-card-content">
+            <div class="lesson-card-body">
+                <p class="mb-4">${content}</p>
+                ${pdfUrl ? `<p class="mb-2"><a href="${pdfUrl}" target="_blank" class="text-indigo-600">View PDF</a></p>` : ''}
+                ${link ? `<p class="mb-2"><a href="${link}" target="_blank" class="text-indigo-600">External Link</a></p>` : ''}
+            </div>
+        </div>
+    `;
+    
+    // Add click event listener to the whole card
+    lessonElement.addEventListener('click', function(event) {
+        // Prevent the click event from propagating if it's on a link
+        if (event.target.tagName === 'A') {
+            event.stopPropagation();
+            return;
+        }
+        toggleLessonDetails(lessonId);
+    });
+    
+    return lessonElement;
+}
 
     async function loadLessonManagement() {
         const user = auth.currentUser;
@@ -1346,38 +1430,14 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     window.saveLesson = async function() {
     console.log("saveLesson function called");
     
-    // Check if the form is visible
-    const form = document.getElementById('add-lesson-form');
-    if (!form || form.style.display === 'none') {
-        console.error('Lesson form is not visible or does not exist');
-        alert('Please open the lesson form before saving.');
-        return;
-    }
-
     // Get all form elements
     const titleElement = document.getElementById('lesson-title');
     const taskElement = document.getElementById('lesson-task');
     const contentElement = document.getElementById('lesson-content');
+    console.log('Content value:', contentElement.value);
     const imageElement = document.getElementById('lesson-image');
     const pdfElement = document.getElementById('lesson-pdf');
     const linkElement = document.getElementById('lesson-link');
-
-    // Log the elements to check if they exist
-    console.log("Form elements:", {
-        titleElement,
-        taskElement,
-        contentElement,
-        imageElement,
-        pdfElement,
-        linkElement
-    });
-
-    // Check if all elements exist
-    if (!titleElement || !taskElement || !contentElement || !imageElement || !pdfElement || !linkElement) {
-        console.error('One or more form elements are missing');
-        alert('There was an error loading the form. Please refresh the page and try again.');
-        return;
-    }
 
     // Get values from form elements, with additional checks
     const title = titleElement.value ? titleElement.value.trim() : '';
@@ -1387,26 +1447,17 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     const pdfFile = pdfElement.files ? pdfElement.files[0] : null;
     const link = linkElement.value ? linkElement.value.trim() : '';
 
-    // Log the values to check if they're correctly retrieved
     console.log("Form values:", { title, task, content, imageFile, pdfFile, link });
 
-    // Check if title is provided (assuming it's the only required field)
     if (!title) {
         alert('Please provide a title for the lesson');
         return;
     }
 
     try {
-        // Get current user and school code
         const user = auth.currentUser;
-        if (!user) {
-            throw new Error('No authenticated user found');
-        }
         const userRef = ref(db, 'users/' + user.uid);
         const userSnapshot = await get(userRef);
-        if (!userSnapshot.exists()) {
-            throw new Error('User data not found');
-        }
         const userData = userSnapshot.val();
         const schoolCode = userData.schoolCode;
 
@@ -1430,19 +1481,14 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
         // Prepare lesson data
         const lessonData = {
             title,
-            task: task || null,
-            content: content || null,
+            task,
+            content,
             imageUrl,
             pdfUrl,
-            link: link || null,
+            link,
             createdBy: user.uid,
             createdAt: Date.now()
         };
-
-        // Remove undefined or null values
-        Object.keys(lessonData).forEach(key => 
-            (lessonData[key] === undefined || lessonData[key] === null) && delete lessonData[key]
-        );
 
         console.log("Lesson data to be saved:", lessonData);
 
@@ -1452,7 +1498,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
 
         console.log("Lesson saved successfully");
         alert('Lesson saved successfully!');
-        
+
         // Clear form fields
         titleElement.value = '';
         taskElement.value = '';
@@ -1465,21 +1511,9 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
         loadLessonManagement();
     } catch (error) {
         console.error('Error saving lesson:', error);
-        console.error('Error details:', error.code, error.message);
-        console.error('Lesson data:', {
-            title,
-            task,
-            content,
-            imageFile: imageFile ? imageFile.name : null,
-            pdfFile: pdfFile ? pdfFile.name : null,
-            link,
-            schoolCode: auth.currentUser ? (await get(ref(db, 'users/' + auth.currentUser.uid))).val()?.schoolCode : null
-        });
-        alert('Failed to save lesson. Please check the console for more details and try again.');
+        alert('Failed to save lesson. Please try again.');
     }
 }
-
-
     window.editLesson = async function(lessonId) {
         const user = auth.currentUser;
         const userRef = ref(db, 'users/' + user.uid);
