@@ -408,9 +408,9 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                 <h3 class="text-2xl font-semibold text-center text-indigo-600 mb-6">Autonomy Mode</h3>
                 <div id="avatar-customization" class="neumorphic p-6">
                     <h3 class="text-xl font-semibold mb-4 text-indigo-600">Customize Your Avatar</h3>
-                    <img id="avatar" src="default-avatar.png" alt="Avatar" class="w-32 h-32 rounded-full mx-auto mb-4" />
-                    <input type="text" id="avatar-url" placeholder="Enter Avatar Image URL" class="neumorphic-inset w-full p-2 mb-4" />
-                    <button onclick="updateAvatar()" class="neumorphic-button w-full py-2 px-4 text-indigo-600 font-semibold">Update Avatar</button>
+                    <img id="avatar-preview" src="https://avataaars.io/?avatarStyle=Circle" alt="Avatar" class="w-32 h-32 rounded-full mx-auto mb-4" />
+                    <button onclick="randomizeAvatar()" class="neumorphic-button w-full py-2 px-4 text-indigo-600 font-semibold mb-4">Randomize Avatar</button>
+                    <button onclick="saveAvatar()" class="neumorphic-button w-full py-2 px-4 text-indigo-600 font-semibold">Save Avatar</button>
                 </div>
             </div>
 
@@ -522,7 +522,6 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
 </div>
 
 <!-- Lesson Modal -->
-<!-- Lesson Modal -->
 <div id="lesson-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
     <div class="bg-white w-full h-full max-w-5xl mx-auto p-8 rounded-lg shadow-lg relative overflow-auto">
         <button onclick="closeLessonModal()" class="absolute top-4 right-4 text-gray-600 text-2xl font-bold">&times;</button>
@@ -536,8 +535,6 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
         <a id="modal-lesson-link" href="#" target="_blank" class="block text-blue-600 hover:underline">Visit Link</a>
     </div>
 </div>
-
-
 
 <!-- Include Quill library -->
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
@@ -697,10 +694,6 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                 <h3 class="text-lg font-semibold mb-2 text-indigo-600">Competence Mode</h3>
                 <ul class="space-y-2">
                     ${commonItems}
-                    
-                    
-                    
-                    
                 </ul>
             `;
         } else if (mode === 'autonomy') {
@@ -708,7 +701,6 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                 <h3 class="text-lg font-semibold mb-2 text-indigo-600">Autonomy Mode</h3>
                 <ul class="space-y-2">
                     ${commonItems}
-                    
                 </ul>
             `;
         } else if (mode === 'relatedness') {
@@ -716,9 +708,6 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                 <h3 class="text-lg font-semibold mb-2 text-indigo-600">Relatedness Mode</h3>
                 <ul class="space-y-2">
                     ${commonItems}
-                    
-                    
-                    
                 </ul>
             `;
         }
@@ -730,12 +719,8 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                     <ul class="space-y-2">
                         <li class="text-gray-700 hover:text-indigo-600 cursor-pointer" onclick="showLessonManagement()">Manage Lessons</li>
                         ${mode === 'competence' ? `
-                            
-                            
                         ` : ''}
                         ${mode === 'relatedness' ? `
-                            
-                            
                         ` : ''}
                     </ul>
                 </div>
@@ -751,6 +736,10 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
         document.getElementById('autonomy-mode').style.display = mode === 'autonomy' ? 'block' : 'none';
         document.getElementById('relatedness-mode').style.display = mode === 'relatedness' ? 'block' : 'none';
 
+        if (mode === 'autonomy') {
+            loadAvatar(); // Load the avatar if in autonomy mode
+        }
+
         if (role === 'student') {
             // Hide the ability to award points and assign teams from students
             document.getElementById('points-award').style.display = 'none';
@@ -764,152 +753,256 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
         }
     }
 
-    // Load individual leaderboard for students in competence mode
-    // Load individual leaderboard for students in competence mode in real-time
-async function loadIndividualLeaderboard(schoolCode) {
-    try {
-        const leaderboardRef = ref(db, `schools/${schoolCode}/leaderboard`);
-        
-        // Listen for changes to the leaderboard data
-        onValue(leaderboardRef, (snapshot) => {
-            const leaderboardList = document.getElementById('individual-leaderboard-list');
-            leaderboardList.innerHTML = '';
+    // Load avatar
+    async function loadAvatar() {
+        const user = auth.currentUser;
 
-            // Create an array to store students for sorting
-            let students = [];
+        if (user) {
+            const userSnapshot = await get(ref(db, 'users/' + user.uid));
+            if (userSnapshot.exists()) {
+                const userData = userSnapshot.val();
+                const avatarUrl = userData.avatarUrl || 'https://avataaars.io/?avatarStyle=Circle';
+                document.getElementById('avatar-preview').src = avatarUrl;
+            }
+        }
+    }
+
+    // Randomize avatar and preview
+    window.randomizeAvatar = function () {
+        const avatarParams = {
+            topType: getRandomTopType(),
+            accessoriesType: getRandomAccessoriesType(),
+            hairColor: getRandomHairColor(),
+            facialHairType: getRandomFacialHairType(),
+            facialHairColor: getRandomFacialHairColor(),
+            clotheType: getRandomClotheType(),
+            clotheColor: getRandomClotheColor(),
+            eyeType: getRandomEyeType(),
+            eyebrowType: getRandomEyebrowType(),
+            mouthType: getRandomMouthType(),
+            skinColor: getRandomSkinColor(),
+        };
+
+        const avatarUrl = `https://avataaars.io/?${new URLSearchParams(avatarParams)}`;
+        document.getElementById('avatar-preview').src = avatarUrl;
+    }
+
+    // Save avatar
+    window.saveAvatar = async function () {
+        const avatarUrl = document.getElementById('avatar-preview').src;
+        const user = auth.currentUser;
+
+        if (user) {
+            try {
+                await update(ref(db, 'users/' + user.uid), { avatarUrl: avatarUrl });
+                alert('Avatar saved successfully!');
+            } catch (error) {
+                alert('Failed to save avatar: ' + error.message);
+            }
+        }
+    }
+
+    // Helper functions for randomizing avatar components
+    function getRandomTopType() {
+        const topTypes = [
+            'NoHair', 'Eyepatch', 'Hat', 'Hijab', 'Turban', 'WinterHat1', 'LongHairStraight',
+            'LongHairCurvy', 'ShortHairShortCurly', 'ShortHairShaggyMullet'
+        ];
+        return topTypes[Math.floor(Math.random() * topTypes.length)];
+    }
+
+    function getRandomAccessoriesType() {
+        const accessoriesTypes = ['Blank', 'Kurt', 'Prescription02', 'Round'];
+        return accessoriesTypes[Math.floor(Math.random() * accessoriesTypes.length)];
+    }
+
+    function getRandomHairColor() {
+        const hairColors = ['Auburn', 'Black', 'Blonde', 'BrownDark', 'Red', 'SilverGray'];
+        return hairColors[Math.floor(Math.random() * hairColors.length)];
+    }
+
+    function getRandomFacialHairType() {
+        const facialHairTypes = ['Blank', 'BeardLight', 'MoustacheFancy'];
+        return facialHairTypes[Math.floor(Math.random() * facialHairTypes.length)];
+    }
+
+    function getRandomFacialHairColor() {
+        const facialHairColors = ['Black', 'BrownDark', 'Red'];
+        return facialHairColors[Math.floor(Math.random() * facialHairColors.length)];
+    }
+
+    function getRandomClotheType() {
+        const clotheTypes = ['BlazerShirt', 'BlazerSweater', 'Hoodie', 'Overall'];
+        return clotheTypes[Math.floor(Math.random() * clotheTypes.length)];
+    }
+
+    function getRandomClotheColor() {
+        const clotheColors = ['PastelBlue', 'PastelGreen', 'PastelOrange', 'PastelRed'];
+        return clotheColors[Math.floor(Math.random() * clotheColors.length)];
+    }
+
+    function getRandomEyeType() {
+        const eyeTypes = ['Close', 'Cry', 'Happy', 'Hearts'];
+        return eyeTypes[Math.floor(Math.random() * eyeTypes.length)];
+    }
+
+    function getRandomEyebrowType() {
+        const eyebrowTypes = ['Angry', 'Default', 'FlatNatural', 'RaisedExcited'];
+        return eyebrowTypes[Math.floor(Math.random() * eyebrowTypes.length)];
+    }
+
+    function getRandomMouthType() {
+        const mouthTypes = ['Smile', 'Disbelief', 'Serious', 'ScreamOpen'];
+        return mouthTypes[Math.floor(Math.random() * mouthTypes.length)];
+    }
+
+    function getRandomSkinColor() {
+        const skinColors = ['Light', 'Brown', 'Black', 'Pale'];
+        return skinColors[Math.floor(Math.random() * skinColors.length)];
+    }
+
+    // Load individual leaderboard for students in competence mode in real-time
+    async function loadIndividualLeaderboard(schoolCode) {
+        try {
+            const leaderboardRef = ref(db, `schools/${schoolCode}/leaderboard`);
+            
+            // Listen for changes to the leaderboard data
+            onValue(leaderboardRef, (snapshot) => {
+                const leaderboardList = document.getElementById('individual-leaderboard-list');
+                leaderboardList.innerHTML = '';
+
+                // Create an array to store students for sorting
+                let students = [];
+
+                snapshot.forEach((childSnapshot) => {
+                    const student = childSnapshot.val();
+                    students.push({ name: student.name, points: student.points });
+                });
+
+                // Sort the students by points in descending order
+                students.sort((a, b) => b.points - a.points);
+
+                // Render the sorted students in the leaderboard
+                students.forEach((student) => {
+                    const li = document.createElement('li');
+                    li.textContent = `${student.name} - ${student.points} points`;
+                    li.className = 'py-2 border-b border-gray-200 last:border-b-0';
+                    leaderboardList.appendChild(li);
+                });
+            }, (error) => {
+                console.error('Failed to load individual leaderboard in real-time:', error);
+            });
+        } catch (error) {
+            console.error('Failed to load individual leaderboard:', error);
+        }
+    }
+
+    // Load team leaderboard for relatedness mode in real-time
+    function setupTeamLeaderboardListener(schoolCode) {
+        const teamsRef = ref(db, `schools/${schoolCode}/teams`);
+        
+        // Listen for changes to the teams data
+        onValue(teamsRef, (snapshot) => {
+            const leaderboardList = document.getElementById('team-leaderboard-list');
+            leaderboardList.innerHTML = ''; // Clear the list first
+
+            // Create an array to store teams for sorting
+            let teams = [];
 
             snapshot.forEach((childSnapshot) => {
-                const student = childSnapshot.val();
-                students.push({ name: student.name, points: student.points });
+                const team = childSnapshot.val();
+                teams.push({ name: childSnapshot.key, points: team.points || 0 });
             });
 
-            // Sort the students by points in descending order
-            students.sort((a, b) => b.points - a.points);
+            // Sort the teams by points in descending order
+            teams.sort((a, b) => b.points - a.points);
 
-            // Render the sorted students in the leaderboard
-            students.forEach((student) => {
+            // Render the sorted teams in the leaderboard
+            teams.forEach((team) => {
                 const li = document.createElement('li');
-                li.textContent = `${student.name} - ${student.points} points`;
+                li.textContent = `${team.name} - ${team.points} points`;
                 li.className = 'py-2 border-b border-gray-200 last:border-b-0';
                 leaderboardList.appendChild(li);
             });
         }, (error) => {
-            console.error('Failed to load individual leaderboard in real-time:', error);
+            console.error('Failed to load team leaderboard in real-time:', error);
         });
-    } catch (error) {
-        console.error('Failed to load individual leaderboard:', error);
     }
-}
-
-
-    // Load team leaderboard for relatedness mode in real-time
-function setupTeamLeaderboardListener(schoolCode) {
-    const teamsRef = ref(db, `schools/${schoolCode}/teams`);
-    
-    // Listen for changes to the teams data
-    onValue(teamsRef, (snapshot) => {
-        const leaderboardList = document.getElementById('team-leaderboard-list');
-        leaderboardList.innerHTML = ''; // Clear the list first
-
-        // Create an array to store teams for sorting
-        let teams = [];
-
-        snapshot.forEach((childSnapshot) => {
-            const team = childSnapshot.val();
-            teams.push({ name: childSnapshot.key, points: team.points || 0 });
-        });
-
-        // Sort the teams by points in descending order
-        teams.sort((a, b) => b.points - a.points);
-
-        // Render the sorted teams in the leaderboard
-        teams.forEach((team) => {
-            const li = document.createElement('li');
-            li.textContent = `${team.name} - ${team.points} points`;
-            li.className = 'py-2 border-b border-gray-200 last:border-b-0';
-            leaderboardList.appendChild(li);
-        });
-    }, (error) => {
-        console.error('Failed to load team leaderboard in real-time:', error);
-    });
-}
-
 
     // Load student progress for competence mode in real-time
-async function loadStudentProgress(uid) {
-    try {
-        const studentRef = ref(db, `users/${uid}`);
-        
-        // Listen for changes to the student's points
-        onValue(studentRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const studentData = snapshot.val();
-                const currentPoints = studentData.points || 0;
-                const currentLevel = Math.floor(currentPoints / 1000) + 1;
-                const nextLevel = currentLevel + 1;
-                const progress = (currentPoints % 1000) / 10;
+    async function loadStudentProgress(uid) {
+        try {
+            const studentRef = ref(db, `users/${uid}`);
+            
+            // Listen for changes to the student's points
+            onValue(studentRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const studentData = snapshot.val();
+                    const currentPoints = studentData.points || 0;
+                    const currentLevel = Math.floor(currentPoints / 1000) + 1;
+                    const nextLevel = currentLevel + 1;
+                    const progress = (currentPoints % 1000) / 10;
 
-                document.getElementById('current-level').textContent = `Level: ${currentLevel}`;
-                document.getElementById('progress').style.width = `${progress}%`;
-                document.getElementById('next-level').textContent = `Next Level: ${nextLevel}`;
+                    document.getElementById('current-level').textContent = `Level: ${currentLevel}`;
+                    document.getElementById('progress').style.width = `${progress}%`;
+                    document.getElementById('next-level').textContent = `Next Level: ${nextLevel}`;
 
-                // Update badges in real-time
-                loadEarnedBadges(uid);
-                document.getElementById('student-progress').style.display = 'block';
-            }
-        }, (error) => {
-            console.error('Failed to load student progress in real-time:', error);
-        });
-    } catch (error) {
-        console.error('Failed to load student progress:', error);
-    }
-}
-
-// Load earned badges for a student in real-time
-async function loadEarnedBadges(uid) {
-    try {
-        const badgesRef = ref(db, `users/${uid}/badges`);
-        
-        // Listen for changes to the student's badges
-        onValue(badgesRef, (snapshot) => {
-            const badgesContainer = document.getElementById('earned-badges');
-            badgesContainer.innerHTML = '';
-
-            // Create badge elements only for earned badges
-            snapshot.forEach((childSnapshot) => {
-                const badgeName = childSnapshot.val();
-                const badge = document.createElement('div');
-                badge.className = 'neumorphic p-2 rounded-full';
-                const img = document.createElement('img');
-                img.src = `images/badges/${badgeName.toLowerCase().replace(/ /g, '-')}.png`;
-                img.alt = badgeName;
-                img.className = 'w-12 h-12';
-
-                // Set default image if badge image fails to load
-                img.onerror = () => {
-                    img.src = 'images/badges/default-badge.png';
-                };
-
-                badge.appendChild(img);
-                badge.title = badgeName; // Add tooltip with badge name
-                badgesContainer.appendChild(badge);
+                    // Update badges in real-time
+                    loadEarnedBadges(uid);
+                    document.getElementById('student-progress').style.display = 'block';
+                }
+            }, (error) => {
+                console.error('Failed to load student progress in real-time:', error);
             });
-
-            // If no badges earned, display a message
-            if (badgesContainer.children.length === 0) {
-                const noBadgesMsg = document.createElement('p');
-                noBadgesMsg.textContent = 'No badges earned yet.';
-                noBadgesMsg.className = 'text-gray-500 italic';
-                badgesContainer.appendChild(noBadgesMsg);
-            }
-        }, (error) => {
-            console.error('Failed to load earned badges in real-time:', error);
-        });
-    } catch (error) {
-        console.error('Failed to load earned badges:', error);
+        } catch (error) {
+            console.error('Failed to load student progress:', error);
+        }
     }
-}
 
+    // Load earned badges for a student in real-time
+    async function loadEarnedBadges(uid) {
+        try {
+            const badgesRef = ref(db, `users/${uid}/badges`);
+            
+            // Listen for changes to the student's badges
+            onValue(badgesRef, (snapshot) => {
+                const badgesContainer = document.getElementById('earned-badges');
+                badgesContainer.innerHTML = '';
+
+                // Create badge elements only for earned badges
+                snapshot.forEach((childSnapshot) => {
+                    const badgeName = childSnapshot.val();
+                    const badge = document.createElement('div');
+                    badge.className = 'neumorphic p-2 rounded-full';
+                    const img = document.createElement('img');
+                    img.src = `images/badges/${badgeName.toLowerCase().replace(/ /g, '-')}.png`;
+                    img.alt = badgeName;
+                    img.className = 'w-12 h-12';
+
+                    // Set default image if badge image fails to load
+                    img.onerror = () => {
+                        img.src = 'images/badges/default-badge.png';
+                    };
+
+                    badge.appendChild(img);
+                    badge.title = badgeName; // Add tooltip with badge name
+                    badgesContainer.appendChild(badge);
+                });
+
+                // If no badges earned, display a message
+                if (badgesContainer.children.length === 0) {
+                    const noBadgesMsg = document.createElement('p');
+                    noBadgesMsg.textContent = 'No badges earned yet.';
+                    noBadgesMsg.className = 'text-gray-500 italic';
+                    badgesContainer.appendChild(noBadgesMsg);
+                }
+            }, (error) => {
+                console.error('Failed to load earned badges in real-time:', error);
+            });
+        } catch (error) {
+            console.error('Failed to load earned badges:', error);
+        }
+    }
 
     // Load students list for the teacher
     async function loadStudents(schoolCode, showAvatars = false) {
@@ -992,22 +1085,6 @@ async function loadEarnedBadges(uid) {
                 }
             } catch (error) {
                 console.error('Failed to award badge:', error);
-            }
-        }
-    }
-
-    // Update avatar
-    window.updateAvatar = async function () {
-        const avatarUrl = document.getElementById('avatar-url').value;
-        const user = auth.currentUser;
-
-        if (user) {
-            try {
-                await update(ref(db, 'users/' + user.uid), { avatarUrl: avatarUrl });
-                document.getElementById('avatar').src = avatarUrl;
-                alert('Avatar updated successfully!');
-            } catch (error) {
-                alert('Failed to update avatar: ' + error.message);
             }
         }
     }
@@ -1166,413 +1243,176 @@ async function loadEarnedBadges(uid) {
         }
     }
 
-   // Load team messages and set up real-time listeners
-async function loadTeamMessages(schoolCode, teamName) {
-    try {
-        const messagesRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages`);
-        const messagesList = document.getElementById('student-messages-list');
-        messagesList.innerHTML = ''; // Clear the list first
+    // Load team messages and set up real-time listeners
+    async function loadTeamMessages(schoolCode, teamName) {
+        try {
+            const messagesRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages`);
+            const messagesList = document.getElementById('student-messages-list');
+            messagesList.innerHTML = ''; // Clear the list first
 
-        // Listen for new messages in real-time
-        onValue(messagesRef, (snapshot) => {
-            messagesList.innerHTML = ''; // Clear the list before appending new messages
+            // Listen for new messages in real-time
+            onValue(messagesRef, (snapshot) => {
+                messagesList.innerHTML = ''; // Clear the list before appending new messages
 
-            snapshot.forEach((childSnapshot) => {
-                const messageData = childSnapshot.val();
-                const messageId = childSnapshot.key;
-                const messageContainer = document.createElement('div');
-                messageContainer.className = 'message-container p-4 rounded-lg shadow-md mb-4 bg-white';
+                snapshot.forEach((childSnapshot) => {
+                    const messageData = childSnapshot.val();
+                    const messageId = childSnapshot.key;
+                    const messageContainer = document.createElement('div');
+                    messageContainer.className = 'message-container p-4 rounded-lg shadow-md mb-4 bg-white';
 
-                const messageHeader = document.createElement('div');
-                messageHeader.className = 'message-header font-semibold text-indigo-600 mb-1';
+                    const messageHeader = document.createElement('div');
+                    messageHeader.className = 'message-header font-semibold text-indigo-600 mb-1';
 
-                const messageText = document.createElement('div');
-                messageText.className = 'message-text mb-2';
-                messageText.textContent = messageData.text;
+                    const messageText = document.createElement('div');
+                    messageText.className = 'message-text text-gray-800';
 
-                const messageSender = document.createElement('div');
-                messageSender.className = 'message-sender text-sm text-gray-600';
-                messageSender.textContent = `Sent by: ${messageData.sender}`;
+                    const messageTimestamp = document.createElement('div');
+                    messageTimestamp.className = 'message-timestamp text-sm text-gray-500';
 
-                const messageTimestamp = document.createElement('div');
-                messageTimestamp.textContent = new Date(messageData.timestamp).toLocaleString();
-                messageTimestamp.className = 'text-xs text-gray-500';
+                    messageHeader.textContent = messageData.senderName;
+                    messageText.textContent = messageData.text;
+                    messageTimestamp.textContent = new Date(messageData.timestamp).toLocaleString();
 
-                const messageActions = document.createElement('div');
-                messageActions.className = 'message-actions flex space-x-2 mt-2';
+                    const messageActions = document.createElement('div');
+                    messageActions.className = 'message-actions flex justify-end mt-2';
+                    messageActions.innerHTML = `
+                        <button class="like-button neumorphic-button py-1 px-3 text-indigo-600 font-semibold mr-2" onclick="likeMessage('${messageId}')">Like (<span id="like-count-${messageId}">${messageData.likes ? messageData.likes.length : 0}</span>)</button>
+                        <button class="dislike-button neumorphic-button py-1 px-3 text-indigo-600 font-semibold" onclick="dislikeMessage('${messageId}')">Dislike (<span id="dislike-count-${messageId}">${messageData.dislikes ? messageData.dislikes.length : 0}</span>)</button>
+                    `;
 
-                const currentLikes = Array.isArray(messageData.likes) ? messageData.likes : [];
-                const currentDislikes = Array.isArray(messageData.dislikes) ? messageData.dislikes : [];
-
-                const likeButton = document.createElement('button');
-                likeButton.textContent = `👍 Like (${currentLikes.length})`;
-                likeButton.className = 'neumorphic-button text-sm py-1 px-2 text-blue-600';
-                likeButton.onclick = () => toggleLikeDislike(schoolCode, teamName, messageId, currentLikes, currentDislikes, true);
-
-                const dislikeButton = document.createElement('button');
-                dislikeButton.textContent = `👎 Dislike (${currentDislikes.length})`;
-                dislikeButton.className = 'neumorphic-button text-sm py-1 px-2 text-red-600';
-                dislikeButton.onclick = () => toggleLikeDislike(schoolCode, teamName, messageId, currentLikes, currentDislikes, false);
-
-                messageActions.appendChild(likeButton);
-                messageActions.appendChild(dislikeButton);
-
-                messageHeader.appendChild(messageSender);
-                messageHeader.appendChild(messageTimestamp);
-
-                messageContainer.appendChild(messageHeader);
-                messageContainer.appendChild(messageText);
-                messageContainer.appendChild(messageActions);
-
-                if (currentLikes.length > 0) {
-                    const likesList = document.createElement('div');
-                    likesList.className = 'message-likes-dislikes text-sm text-blue-600';
-                    likesList.textContent = `${currentLikes.join(", ")} liked this`;
-                    messageContainer.appendChild(likesList);
-                }
-
-                if (currentDislikes.length > 0) {
-                    const dislikesList = document.createElement('div');
-                    dislikesList.className = 'message-likes-dislikes text-sm text-red-600';
-                    dislikesList.textContent = `${currentDislikes.join(", ")} disliked this`;
-                    messageContainer.appendChild(dislikesList);
-                }
-
-                messagesList.appendChild(messageContainer);
+                    messageContainer.appendChild(messageHeader);
+                    messageContainer.appendChild(messageText);
+                    messageContainer.appendChild(messageTimestamp);
+                    messageContainer.appendChild(messageActions);
+                    messagesList.appendChild(messageContainer);
+                });
             });
-
-            // Scroll to the latest message
-            messagesList.scrollTop = messagesList.scrollHeight;
-        }, (error) => {
-            console.error('Failed to load team messages in real-time:', error);
-        });
-    } catch (error) {
-        console.error('Failed to load team messages:', error);
+        } catch (error) {
+            console.error('Failed to load team messages:', error);
+        }
     }
-}
 
-// Toggle like or dislike on a message
-async function toggleLikeDislike(schoolCode, teamName, messageId, currentLikes, currentDislikes, isLike) {
+ // Function to like a message
+window.likeMessage = async function (messageId) {
     const user = auth.currentUser;
-    const userRef = await get(ref(db, 'users/' + user.uid));
-    const userData = userRef.val();
+    const schoolCode = (await get(ref(db, 'users/' + user.uid))).val().schoolCode;
+    const teamName = (await get(ref(db, 'users/' + user.uid))).val().teamName;
 
-    const messageRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages/${messageId}`);
+    const likeRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages/${messageId}/likes`);
+    const dislikeRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages/${messageId}/dislikes`);
+    
+    const likesSnapshot = await get(likeRef);
+    let likes = likesSnapshot.exists() ? likesSnapshot.val() : [];
 
-    if (isLike) {
-        if (currentLikes.includes(userData.fullName)) {
-            alert('You have already liked this message.');
-        } else {
-            // Remove dislike if present
-            if (currentDislikes.includes(userData.fullName)) {
-                const dislikeIndex = currentDislikes.indexOf(userData.fullName);
-                currentDislikes.splice(dislikeIndex, 1);
-            }
-            currentLikes.push(userData.fullName);
-            await update(messageRef, { likes: currentLikes, dislikes: currentDislikes });
-            alert('You liked this message.');
-        }
-    } else {
-        if (currentDislikes.includes(userData.fullName)) {
-            alert('You have already disliked this message.');
-        } else {
-            // Remove like if present
-            if (currentLikes.includes(userData.fullName)) {
-                const likeIndex = currentLikes.indexOf(userData.fullName);
-                currentLikes.splice(likeIndex, 1);
-            }
-            currentDislikes.push(userData.fullName);
-            await update(messageRef, { likes: currentLikes, dislikes: currentDislikes });
-            alert('You disliked this message.');
-        }
+    const dislikesSnapshot = await get(dislikeRef);
+    let dislikes = dislikesSnapshot.exists() ? dislikesSnapshot.val() : [];
+
+    if (!likes.includes(user.uid)) {
+        likes.push(user.uid);
+
+        // Remove from dislikes if user had previously disliked the message
+        dislikes = dislikes.filter(uid => uid !== user.uid);
+
+        await set(likeRef, likes);
+        await set(dislikeRef, dislikes);
+
+        document.getElementById(`like-count-${messageId}`).textContent = likes.length;
+        document.getElementById(`dislike-count-${messageId}`).textContent = dislikes.length;
+    }
+}
+
+// Function to dislike a message
+window.dislikeMessage = async function (messageId) {
+    const user = auth.currentUser;
+    const schoolCode = (await get(ref(db, 'users/' + user.uid))).val().schoolCode;
+    const teamName = (await get(ref(db, 'users/' + user.uid))).val().teamName;
+
+    const likeRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages/${messageId}/likes`);
+    const dislikeRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages/${messageId}/dislikes`);
+    
+    const likesSnapshot = await get(likeRef);
+    let likes = likesSnapshot.exists() ? likesSnapshot.val() : [];
+
+    const dislikesSnapshot = await get(dislikeRef);
+    let dislikes = dislikesSnapshot.exists() ? dislikesSnapshot.val() : [];
+
+    if (!dislikes.includes(user.uid)) {
+        dislikes.push(user.uid);
+
+        // Remove from likes if user had previously liked the message
+        likes = likes.filter(uid => uid !== user.uid);
+
+        await set(dislikeRef, dislikes);
+        await set(likeRef, likes);
+
+        document.getElementById(`like-count-${messageId}`).textContent = likes.length;
+        document.getElementById(`dislike-count-${messageId}`).textContent = dislikes.length;
     }
 }
 
 
-    // Send a new message to the team
+
+    // Send a message in the team chat
     window.sendMessage = async function () {
-        const messageInput = document.getElementById('team-message-input');
-        const messageText = messageInput.value.trim();
+        const messageText = document.getElementById('team-message-input').value;
         const user = auth.currentUser;
 
-        if (messageText !== '') {
+        if (messageText.trim() !== '') {
             try {
-                const userRef = await get(ref(db, 'users/' + user.uid));
-                const userData = userRef.val();
-                const teamName = userData.teamName;
-                const schoolCode = userData.schoolCode;
+                const userRef = ref(db, 'users/' + user.uid);
+                const userSnapshot = await get(userRef);
+                if (userSnapshot.exists()) {
+                    const userData = userSnapshot.val();
+                    const teamName = userData.teamName;
+                    const schoolCode = userData.schoolCode;
 
-                const messagesRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages`);
-                await push(messagesRef, {
-                    text: messageText,
-                    sender: userData.fullName,
-                    timestamp: Date.now()
-                });
+                    if (teamName) {
+                        const messagesRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages`);
+                        const newMessageRef = push(messagesRef);
+                        await set(newMessageRef, {
+                            senderId: user.uid,
+                            senderName: userData.fullName,
+                            text: messageText,
+                            timestamp: Date.now()
+                        });
 
-                messageInput.value = ''; // Clear the input after sending the message
+                        // Clear the input field
+                        document.getElementById('team-message-input').value = '';
+                    }
+                }
             } catch (error) {
-                alert('Failed to send message: ' + error.message);
+                console.error('Failed to send message:', error);
             }
         }
     }
 
-    // Award points to a team (For teachers)
-window.awardTeamPoints = async function (points) {
-    const teamName = document.getElementById('team-select').value;
-    const user = auth.currentUser;
+    // Award points to a team
+    window.awardTeamPoints = async function (points) {
+        const teamName = document.getElementById('team-select').value;
+        const schoolCode = (await get(ref(db, `users/${auth.currentUser.uid}`))).val().schoolCode;
 
-    if (teamName) {
-        try {
-            // Get the school code for the current user (teacher)
-            const userRef = ref(db, 'users/' + user.uid);
-            const userSnapshot = await get(userRef);
-            const userData = userSnapshot.val();
-            const schoolCode = userData.schoolCode;
-
-            // Reference to the selected team in the database
-            const teamRef = ref(db, `schools/${schoolCode}/teams/${teamName}`);
-            const teamSnapshot = await get(teamRef);
-
-            if (teamSnapshot.exists()) {
-                const teamData = teamSnapshot.val();
-                const newPoints = (teamData.points || 0) + points;
-
-                // Update the points for the team
-                await update(teamRef, { points: newPoints });
-
-                alert(`Awarded ${points} points to the team: ${teamName}`);
-                loadTeams(schoolCode); // Reload teams to reflect changes
-            } else {
-                alert('Selected team does not exist.');
-            }
-        } catch (error) {
-            console.error('Failed to award points to the team:', error);
-        }
-    } else {
-        alert('Please select a team.');
-    }
-}
-
-    // Show dashboard view
-    window.showDashboard = function () {
-        document.getElementById('lesson-content').style.display = 'block';
-        document.getElementById('lessons-section').style.display = 'none';
-        document.getElementById('lesson-management').style.display = 'none';
-    }
-
-    // Show lessons view
-   // Show lessons view
-// Show lessons view
-window.showLessons = async function () {
-    const lessonsList = document.getElementById('lessons-list');
-    lessonsList.innerHTML = ''; // Clear the list before adding new lessons
-
-    const lessonsRef = ref(db, 'lessons');
-    const lessonsSnapshot = await get(lessonsRef);
-
-    lessonsSnapshot.forEach((childSnapshot) => {
-        const lessonData = childSnapshot.val();
-        const lessonCard = document.createElement('div');
-        lessonCard.className = 'lesson-card neumorphic p-4';
-        const lessonCardHeader = document.createElement('div');
-        lessonCardHeader.className = 'lesson-card-header flex items-center justify-between';
-        lessonCardHeader.textContent = lessonData.title;
-        lessonCardHeader.onclick = function () {
-            openLessonModal(lessonData); // Open modal with lesson content
-        };
-        const lessonCardContent = document.createElement('div');
-        lessonCardContent.className = 'lesson-card-content';
-        const lessonCardBody = document.createElement('div');
-        lessonCardBody.className = 'lesson-card-body';
-
-        const lessonTask = document.createElement('p');
-        lessonTask.textContent = lessonData.task || 'No task assigned';
-        lessonTask.style.marginBottom = '10px'; // Add space between task and content
-
-        const lessonContent = document.createElement('div');
-        lessonContent.innerHTML = lessonData.content; // Display the rich text content
-        lessonContent.style.marginBottom = '20px'; // Add space after content
-
-        lessonCardBody.appendChild(lessonTask);
-        lessonCardBody.appendChild(lessonContent);
-        lessonCardContent.appendChild(lessonCardBody);
-
-        const lessonCardImage = document.createElement('img');
-        lessonCardImage.className = 'lesson-card-image';
-        lessonCardImage.src = lessonData.image || 'default-image.jpg';
-        
-        const lessonCardPDFLink = document.createElement('a');
-        lessonCardPDFLink.href = lessonData.pdf || '#';
-        lessonCardPDFLink.textContent = 'Download PDF';
-        lessonCardPDFLink.target = '_blank'; // Open in a new tab
-
-        const lessonCardExternalLink = document.createElement('a');
-        lessonCardExternalLink.href = lessonData.externalLink || '#';
-        lessonCardExternalLink.textContent = 'Visit Link';
-        lessonCardExternalLink.target = '_blank'; // Open in a new tab
-
-        lessonCardContent.appendChild(lessonCardImage);
-        lessonCardContent.appendChild(document.createElement('br')); // Line break between PDF and external link
-        lessonCardContent.appendChild(lessonCardPDFLink);
-        lessonCardContent.appendChild(document.createElement('br')); // Separate PDF and Link
-        lessonCardContent.appendChild(lessonCardExternalLink);
-
-        lessonCard.appendChild(lessonCardHeader);
-        lessonCard.appendChild(lessonCardContent);
-        lessonsList.appendChild(lessonCard);
-    });
-
-    document.getElementById('lesson-content').style.display = 'none';
-    document.getElementById('lessons-section').style.display = 'block';
-    document.getElementById('lesson-management').style.display = 'none';
-}
-
-// Function to open the lesson in a modal
-function openLessonModal(lessonData) {
-    const modal = document.getElementById('lesson-modal');
-    document.getElementById('modal-lesson-title').textContent = lessonData.title;
-    document.getElementById('modal-lesson-task').textContent = lessonData.task;
-    document.getElementById('modal-lesson-content').innerHTML = lessonData.content;
-    document.getElementById('modal-lesson-image').src = lessonData.image || 'default-image.jpg';
-    document.getElementById('modal-lesson-pdf').href = lessonData.pdf || '#';
-    document.getElementById('modal-lesson-link').href = lessonData.externalLink || '#';
-
-    modal.classList.remove('hidden');
-}
-
-// Function to close the modal
-window.closeLessonModal = function () {
-    const modal = document.getElementById('lesson-modal');
-    modal.classList.add('hidden');
-}
-
-    // Show lesson management view (for teachers)
-    window.showLessonManagement = async function () {
-        const lessonsManagementList = document.getElementById('lessons-management-list');
-        lessonsManagementList.innerHTML = ''; // Clear the list before adding new lessons
-
-        const lessonsRef = ref(db, 'lessons');
-        const lessonsSnapshot = await get(lessonsRef);
-
-        lessonsSnapshot.forEach((childSnapshot) => {
-            const lessonData = childSnapshot.val();
-            const lessonCard = document.createElement('div');
-            lessonCard.className = 'lesson-card neumorphic p-4';
-            const lessonCardHeader = document.createElement('div');
-            lessonCardHeader.className = 'lesson-card-header flex items-center justify-between';
-            lessonCardHeader.textContent = lessonData.title;
-            const editButton = document.createElement('button');
-            editButton.textContent = 'Edit';
-            editButton.className = 'neumorphic-button py-1 px-2 text-indigo-600 font-semibold ml-2';
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Delete';
-            deleteButton.className = 'neumorphic-button py-1 px-2 text-red-600 font-semibold ml-2';
-            deleteButton.onclick = function () {
-                deleteLesson(childSnapshot.key);
-            };
-            lessonCardHeader.appendChild(editButton);
-            lessonCardHeader.appendChild(deleteButton);
-            const lessonCardContent = document.createElement('div');
-            lessonCardContent.className = 'lesson-card-content';
-            const lessonCardBody = document.createElement('div');
-            lessonCardBody.className = 'lesson-card-body';
-            const lessonTask = document.createElement('p');
-            lessonTask.textContent = lessonData.task || 'No task assigned';
-            const lessonContent = document.createElement('div');
-            lessonContent.innerHTML = lessonData.content; // Display the rich text content
-            lessonCardBody.appendChild(lessonTask);
-            lessonCardBody.appendChild(lessonContent);
-            lessonCardContent.appendChild(lessonCardBody);
-            const lessonCardImage = document.createElement('img');
-            lessonCardImage.className = 'lesson-card-image';
-            lessonCardImage.src = lessonData.image || 'default-image.jpg';
-            const lessonCardPDFLink = document.createElement('a');
-            lessonCardPDFLink.href = lessonData.pdf || '#';
-            lessonCardPDFLink.textContent = 'Download PDF';
-            const lessonCardExternalLink = document.createElement('a');
-            lessonCardExternalLink.href = lessonData.externalLink || '#';
-            lessonCardExternalLink.textContent = 'Visit Link';
-            lessonCardContent.appendChild(lessonCardImage);
-            lessonCardContent.appendChild(lessonCardPDFLink);
-            lessonCardContent.appendChild(lessonCardExternalLink);
-            lessonCard.appendChild(lessonCardHeader);
-            lessonCard.appendChild(lessonCardContent);
-            lessonsManagementList.appendChild(lessonCard);
-        });
-
-        document.getElementById('lesson-content').style.display = 'none';
-        document.getElementById('lessons-section').style.display = 'none';
-        document.getElementById('lesson-management').style.display = 'block';
-    }
-
-    // Show the add lesson form
-    window.showAddLessonForm = function () {
-        document.getElementById('add-lesson-form').classList.toggle('hidden');
-    }
-
-    // Save a new lesson
-    window.saveLesson = async function () {
-        const title = document.getElementById('lesson-title').value.trim();
-        const task = document.getElementById('lesson-task').value.trim();
-        const content = quill.root.innerHTML;
-        const imageFile = document.getElementById('lesson-image').files[0];
-        const pdfFile = document.getElementById('lesson-pdf').files[0];
-        const externalLink = document.getElementById('lesson-link').value.trim();
-
-        if (!title) {
-            alert('Please provide a lesson title.');
-            return;
-        }
-
-        try {
-            const lessonRef = push(ref(db, 'lessons'));
-
-            let imageUrl = '';
-            if (imageFile) {
-                const imageStorageRef = storageRef(storage, `lesson-images/${lessonRef.key}/${imageFile.name}`);
-                const imageSnapshot = await uploadBytes(imageStorageRef, imageFile);
-                imageUrl = await getDownloadURL(imageSnapshot.ref);
-            }
-
-            let pdfUrl = '';
-            if (pdfFile) {
-                const pdfStorageRef = storageRef(storage, `lesson-pdfs/${lessonRef.key}/${pdfFile.name}`);
-                const pdfSnapshot = await uploadBytes(pdfStorageRef, pdfFile);
-                pdfUrl = await getDownloadURL(pdfSnapshot.ref);
-            }
-
-            await set(lessonRef, {
-                title: title,
-                task: task,
-                content: content,
-                image: imageUrl,
-                pdf: pdfUrl,
-                externalLink: externalLink
-            });
-
-            alert('Lesson saved successfully!');
-            showLessonManagement(); // Refresh the lessons list
-        } catch (error) {
-            alert('Failed to save lesson: ' + error.message);
-        }
-    }
-
-    // Delete a lesson
-    async function deleteLesson(lessonId) {
-        const confirmDelete = confirm('Are you sure you want to delete this lesson?');
-
-        if (confirmDelete) {
+        if (teamName) {
             try {
-                await set(ref(db, 'lessons/' + lessonId), null);
-                alert('Lesson deleted successfully!');
-                showLessonManagement(); // Refresh the lessons list
+                const teamRef = ref(db, `schools/${schoolCode}/teams/${teamName}`);
+                const teamSnapshot = await get(teamRef);
+
+                if (teamSnapshot.exists()) {
+                    const teamData = teamSnapshot.val();
+                    const newPoints = (teamData.points || 0) + points;
+
+                    // Update points for the team
+                    await update(teamRef, { points: newPoints });
+
+                    alert('Points awarded successfully!');
+                    loadTeams(schoolCode); // Reload teams to reflect changes
+                }
             } catch (error) {
-                alert('Failed to delete lesson: ' + error.message);
+                console.error('Failed to award team points:', error);
             }
         }
     }
 
-    // Logout
+    // Logout function
     window.logout = function () {
         signOut(auth).then(() => {
             document.getElementById('auth-container').style.display = 'flex';
@@ -1583,66 +1423,164 @@ window.closeLessonModal = function () {
         });
     }
 
-    // Quill Editor initialization
-    const quill = new Quill('#lesson-editor', {
-        theme: 'snow',
-        placeholder: 'Enter the lesson content...',
-        modules: {
-            toolbar: [
-                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                ['link', 'image', 'video'],
-                ['clean']
-            ]
-        }
-    });
+    // Show dashboard
+    window.showDashboard = function () {
+        document.getElementById('lesson-content').style.display = 'block';
+        document.getElementById('lessons-section').style.display = 'none';
+        document.getElementById('lesson-management').style.display = 'none';
+    }
 
-    // Lesson image preview
-    document.getElementById('lesson-image').addEventListener('change', function (event) {
-        const file = event.target.files[0];
-        const previewContainer = document.getElementById('lesson-image-preview-container');
-        const previewImage = document.getElementById('lesson-image-preview');
+    // Show lessons
+    window.showLessons = function () {
+        document.getElementById('lesson-content').style.display = 'none';
+        document.getElementById('lessons-section').style.display = 'block';
+        document.getElementById('lesson-management').style.display = 'none';
+        loadLessons();
+    }
 
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                previewImage.src = e.target.result;
-                previewContainer.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        } else {
-            previewContainer.style.display = 'none';
-            previewImage.src = '';
-        }
-    });
+    // Load lessons
+    async function loadLessons() {
+        try {
+            const lessonsRef = ref(db, 'lessons');
+            const snapshot = await get(lessonsRef);
+            const lessonsList = document.getElementById('lessons-list');
+            lessonsList.innerHTML = ''; // Clear the list first
 
-    // Lesson PDF label
-    document.getElementById('lesson-pdf').addEventListener('change', function (event) {
-        const file = event.target.files[0];
-        const label = document.getElementById('lesson-pdf-label');
-        if (file) {
-            label.textContent = file.name;
-        } else {
-            label.textContent = '';
-        }
-    });
-
-    // Load avatar
-    window.onload = async function () {
-        const user = auth.currentUser;
-
-        if (user) {
-            const userSnapshot = await get(ref(db, 'users/' + user.uid));
-            if (userSnapshot.exists()) {
-                const userData = userSnapshot.val();
-                if (userData.avatarUrl) {
-                    document.getElementById('avatar').src = userData.avatarUrl;
-                }
-            }
+            snapshot.forEach((childSnapshot) => {
+                const lessonData = childSnapshot.val();
+                const lessonCard = document.createElement('div');
+                lessonCard.className = 'neumorphic lesson-card p-4 rounded-lg mb-4 shadow-md cursor-pointer';
+                lessonCard.addEventListener('click', () => openLessonModal(lessonData));
+                lessonCard.innerHTML = `
+                    <h4 class="lesson-card-header font-semibold text-indigo-600">${lessonData.title}</h4>
+                    <div class="lesson-card-content hidden">${lessonData.content}</div>
+                `;
+                lessonsList.appendChild(lessonCard);
+            });
+        } catch (error) {
+            console.error('Failed to load lessons:', error);
         }
     }
-</script>
 
+    // Open lesson modal
+    window.openLessonModal = function (lessonData) {
+        document.getElementById('modal-lesson-title').textContent = lessonData.title;
+        document.getElementById('modal-lesson-task').textContent = lessonData.task || 'No task specified.';
+        document.getElementById('modal-lesson-content').innerHTML = lessonData.content || 'No content available.';
+        document.getElementById('modal-lesson-image').src = lessonData.imageUrl || '';
+        document.getElementById('modal-lesson-pdf').href = lessonData.pdfUrl || '';
+        document.getElementById('modal-lesson-link').href = lessonData.link || '';
+        document.getElementById('lesson-modal').style.display = 'block';
+    }
+
+    // Close lesson modal
+    window.closeLessonModal = function () {
+        document.getElementById('lesson-modal').style.display = 'none';
+    }
+
+    // Show lesson management section
+    window.showLessonManagement = function () {
+        document.getElementById('lesson-content').style.display = 'none';
+        document.getElementById('lessons-section').style.display = 'none';
+        document.getElementById('lesson-management').style.display = 'block';
+        loadLessonsForManagement();
+    }
+
+    // Show add lesson form
+    window.showAddLessonForm = function () {
+        document.getElementById('add-lesson-form').style.display = 'block';
+    }
+
+    // Save a new lesson
+    window.saveLesson = async function () {
+        const title = document.getElementById('lesson-title').value;
+        const task = document.getElementById('lesson-task').value;
+        const content = quill.root.innerHTML;
+        const lessonImage = document.getElementById('lesson-image').files[0];
+        const pdfFile = document.getElementById('lesson-pdf').files[0];
+        const link = document.getElementById('lesson-link').value;
+
+        const lessonId = push(ref(db, 'lessons')).key;
+
+        try {
+            let imageUrl = '';
+            if (lessonImage) {
+                const storageReference = storageRef(storage, 'lessons/' + lessonId + '/image');
+                const snapshot = await uploadBytes(storageReference, lessonImage);
+                imageUrl = await getDownloadURL(snapshot.ref);
+            }
+
+            let pdfUrl = '';
+            if (pdfFile) {
+                const storageReference = storageRef(storage, 'lessons/' + lessonId + '/pdf');
+                const snapshot = await uploadBytes(storageReference, pdfFile);
+                pdfUrl = await getDownloadURL(snapshot.ref);
+            }
+
+            await set(ref(db, 'lessons/' + lessonId), {
+                title: title,
+                task: task,
+                content: content,
+                imageUrl: imageUrl,
+                pdfUrl: pdfUrl,
+                link: link
+            });
+
+            alert('Lesson saved successfully!');
+            showLessons(); // Show lessons after saving a new one
+        } catch (error) {
+            console.error('Failed to save lesson:', error);
+        }
+    }
+
+    // Load lessons for management
+    async function loadLessonsForManagement() {
+        try {
+            const lessonsRef = ref(db, 'lessons');
+            const snapshot = await get(lessonsRef);
+            const lessonsList = document.getElementById('lessons-management-list');
+            lessonsList.innerHTML = ''; // Clear the list first
+
+            snapshot.forEach((childSnapshot) => {
+                const lessonData = childSnapshot.val();
+                const lessonCard = document.createElement('div');
+                lessonCard.className = 'neumorphic lesson-card p-4 rounded-lg mb-4 shadow-md';
+                lessonCard.innerHTML = `
+                    <h4 class="lesson-card-header font-semibold text-indigo-600">${lessonData.title}</h4>
+                    <div class="lesson-card-body">
+                        <div class="lesson-card-content hidden">${lessonData.content}</div>
+                        <button class="neumorphic-button py-2 px-4 text-indigo-600 font-semibold" onclick="deleteLesson('${childSnapshot.key}')">Delete</button>
+                    </div>
+                `;
+                lessonsList.appendChild(lessonCard);
+            });
+        } catch (error) {
+            console.error('Failed to load lessons for management:', error);
+        }
+    }
+
+    // Delete a lesson
+    window.deleteLesson = async function (lessonId) {
+        try {
+            await set(ref(db, 'lessons/' + lessonId), null);
+            alert('Lesson deleted successfully!');
+            loadLessonsForManagement(); // Reload lessons after deletion
+        } catch (error) {
+            console.error('Failed to delete lesson:', error);
+        }
+    }
+
+    // Initialize Quill editor for lesson content
+    const quill = new Quill('#lesson-editor', {
+        theme: 'snow'
+    });
+
+    // Load dashboard after authentication state changes
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            loadDashboard(user);
+        }
+    });
+</script>
 </body>
 </html>
