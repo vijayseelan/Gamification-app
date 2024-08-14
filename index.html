@@ -319,6 +319,8 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     }
 }
     </style>
+    <!-- Include Quill stylesheet -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 font-sans">
 
@@ -474,7 +476,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
             <div id="add-lesson-form" class="hidden space-y-4">
                 <input type="text" id="lesson-title" placeholder="Lesson Title (required)" class="neumorphic-inset w-full p-2" required>
                 <input type="text" id="lesson-task" placeholder="Lesson Task (optional)" class="neumorphic-inset w-full p-2">
-                <textarea id="lesson-content" placeholder="Lesson Content" class="neumorphic-inset w-full p-2 h-32"></textarea>
+                <div id="lesson-editor" class="neumorphic-inset w-full p-2 h-32"></div>
                 <input type="file" id="lesson-image" accept="image/*" class="neumorphic-inset w-full p-2">
                 <div id="lesson-image-preview-container" class="hidden mt-2">
                     <img id="lesson-image-preview" class="max-w-full h-auto" alt="Image preview" />
@@ -519,6 +521,26 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     </div>
 </div>
 
+<!-- Lesson Modal -->
+<!-- Lesson Modal -->
+<div id="lesson-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+    <div class="bg-white w-full h-full max-w-5xl mx-auto p-8 rounded-lg shadow-lg relative overflow-auto">
+        <button onclick="closeLessonModal()" class="absolute top-4 right-4 text-gray-600 text-2xl font-bold">&times;</button>
+        <h2 id="modal-lesson-title" class="text-2xl font-semibold mb-4 text-indigo-600"></h2>
+        <div id="modal-lesson-task" class="text-lg mb-4"></div>
+        <div id="modal-lesson-content" class="mb-4"></div>
+        <div class="flex justify-center mb-4">
+            <img id="modal-lesson-image" class="max-w-full h-auto rounded-lg" alt="Lesson Image" />
+        </div>
+        <a id="modal-lesson-pdf" href="#" target="_blank" class="block mb-2 text-blue-600 hover:underline">Download PDF</a>
+        <a id="modal-lesson-link" href="#" target="_blank" class="block text-blue-600 hover:underline">Visit Link</a>
+    </div>
+</div>
+
+
+
+<!-- Include Quill library -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script type="module">
     // Firebase configuration and initialization
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
@@ -1238,454 +1260,324 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
         }
     }
 
-    // Send a message in a team (Relatedness mode)
+    // Send a new message to the team
     window.sendMessage = async function () {
+        const messageInput = document.getElementById('team-message-input');
+        const messageText = messageInput.value.trim();
         const user = auth.currentUser;
-        const messageText = document.getElementById('team-message-input').value;
 
-        if (!messageText.trim()) {
-            alert('Message cannot be empty');
-            return;
-        }
-
-        try {
-            const userRef = ref(db, 'users/' + user.uid);
-            const userSnapshot = await get(userRef);
-            const userData = userSnapshot.val();
-            const teamName = userData.teamName;
-            const schoolCode = userData.schoolCode;
-
-            const newMessageRef = push(ref(db, `schools/${schoolCode}/teams/${teamName}/messages`));
-            await set(newMessageRef, {
-                text: messageText,
-                sender: userData.fullName,
-                timestamp: Date.now(),
-                likes: [],
-                dislikes: []
-            });
-
-            document.getElementById('team-message-input').value = ''; // Clear the input field
-            alert('Message sent successfully!');
-        } catch (error) {
-            console.error('Failed to send message:', error);
-        }
-    }
-
-    // Award points to a team (For teachers)
-    window.awardTeamPoints = async function (points) {
-        const teamName = document.getElementById('team-select').value;
-        const schoolCode = (await get(ref(db, 'users/' + auth.currentUser.uid))).val().schoolCode;
-
-        if (teamName) {
+        if (messageText !== '') {
             try {
-                const teamsRef = ref(db, `schools/${schoolCode}/teams/${teamName}`);
-                const teamSnapshot = await get(teamsRef);
+                const userRef = await get(ref(db, 'users/' + user.uid));
+                const userData = userRef.val();
+                const teamName = userData.teamName;
+                const schoolCode = userData.schoolCode;
 
-                if (teamSnapshot.exists()) {
-                    const teamData = teamSnapshot.val();
-                    const newPoints = (teamData.points || 0) + points;
+                const messagesRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages`);
+                await push(messagesRef, {
+                    text: messageText,
+                    sender: userData.fullName,
+                    timestamp: Date.now()
+                });
 
-                    // Update points for the team
-                    await update(teamsRef, { points: newPoints });
-
-                    alert('Points awarded to the team successfully!');
-                    loadTeams(schoolCode); // Reload teams to reflect changes
-                }
+                messageInput.value = ''; // Clear the input after sending the message
             } catch (error) {
-                console.error('Failed to award points to the team:', error);
+                alert('Failed to send message: ' + error.message);
             }
         }
     }
 
-    // New functions for lesson management
-    window.showDashboard = function() {
+    // Show dashboard view
+    window.showDashboard = function () {
         document.getElementById('lesson-content').style.display = 'block';
         document.getElementById('lessons-section').style.display = 'none';
         document.getElementById('lesson-management').style.display = 'none';
     }
 
-    window.showLessons = function() {
+    // Show lessons view
+   // Show lessons view
+// Show lessons view
+window.showLessons = async function () {
+    const lessonsList = document.getElementById('lessons-list');
+    lessonsList.innerHTML = ''; // Clear the list before adding new lessons
+
+    const lessonsRef = ref(db, 'lessons');
+    const lessonsSnapshot = await get(lessonsRef);
+
+    lessonsSnapshot.forEach((childSnapshot) => {
+        const lessonData = childSnapshot.val();
+        const lessonCard = document.createElement('div');
+        lessonCard.className = 'lesson-card neumorphic p-4';
+        const lessonCardHeader = document.createElement('div');
+        lessonCardHeader.className = 'lesson-card-header flex items-center justify-between';
+        lessonCardHeader.textContent = lessonData.title;
+        lessonCardHeader.onclick = function () {
+            openLessonModal(lessonData); // Open modal with lesson content
+        };
+        const lessonCardContent = document.createElement('div');
+        lessonCardContent.className = 'lesson-card-content';
+        const lessonCardBody = document.createElement('div');
+        lessonCardBody.className = 'lesson-card-body';
+
+        const lessonTask = document.createElement('p');
+        lessonTask.textContent = lessonData.task || 'No task assigned';
+        lessonTask.style.marginBottom = '10px'; // Add space between task and content
+
+        const lessonContent = document.createElement('div');
+        lessonContent.innerHTML = lessonData.content; // Display the rich text content
+        lessonContent.style.marginBottom = '20px'; // Add space after content
+
+        lessonCardBody.appendChild(lessonTask);
+        lessonCardBody.appendChild(lessonContent);
+        lessonCardContent.appendChild(lessonCardBody);
+
+        const lessonCardImage = document.createElement('img');
+        lessonCardImage.className = 'lesson-card-image';
+        lessonCardImage.src = lessonData.image || 'default-image.jpg';
+        
+        const lessonCardPDFLink = document.createElement('a');
+        lessonCardPDFLink.href = lessonData.pdf || '#';
+        lessonCardPDFLink.textContent = 'Download PDF';
+        lessonCardPDFLink.target = '_blank'; // Open in a new tab
+
+        const lessonCardExternalLink = document.createElement('a');
+        lessonCardExternalLink.href = lessonData.externalLink || '#';
+        lessonCardExternalLink.textContent = 'Visit Link';
+        lessonCardExternalLink.target = '_blank'; // Open in a new tab
+
+        lessonCardContent.appendChild(lessonCardImage);
+        lessonCardContent.appendChild(document.createElement('br')); // Line break between PDF and external link
+        lessonCardContent.appendChild(lessonCardPDFLink);
+        lessonCardContent.appendChild(document.createElement('br')); // Separate PDF and Link
+        lessonCardContent.appendChild(lessonCardExternalLink);
+
+        lessonCard.appendChild(lessonCardHeader);
+        lessonCard.appendChild(lessonCardContent);
+        lessonsList.appendChild(lessonCard);
+    });
+
     document.getElementById('lesson-content').style.display = 'none';
     document.getElementById('lessons-section').style.display = 'block';
     document.getElementById('lesson-management').style.display = 'none';
-    loadLessons();
 }
 
-function toggleLessonDetails(lessonId) {
-    const content = document.getElementById(`lesson-content-${lessonId}`);
-    if (content) {
-        content.classList.toggle('expanded');
-        
-        // Toggle max-height for smooth animation
-        if (content.style.maxHeight) {
-            content.style.maxHeight = null;
-        } else {
-            content.style.maxHeight = content.scrollHeight + "px";
-        }
-    }
+// Function to open the lesson in a modal
+function openLessonModal(lessonData) {
+    const modal = document.getElementById('lesson-modal');
+    document.getElementById('modal-lesson-title').textContent = lessonData.title;
+    document.getElementById('modal-lesson-task').textContent = lessonData.task;
+    document.getElementById('modal-lesson-content').innerHTML = lessonData.content;
+    document.getElementById('modal-lesson-image').src = lessonData.image || 'default-image.jpg';
+    document.getElementById('modal-lesson-pdf').href = lessonData.pdf || '#';
+    document.getElementById('modal-lesson-link').href = lessonData.externalLink || '#';
+
+    modal.classList.remove('hidden');
 }
 
-    window.showLessonManagement = function() {
+// Function to close the modal
+window.closeLessonModal = function () {
+    const modal = document.getElementById('lesson-modal');
+    modal.classList.add('hidden');
+}
+
+    // Show lesson management view (for teachers)
+    window.showLessonManagement = async function () {
+        const lessonsManagementList = document.getElementById('lessons-management-list');
+        lessonsManagementList.innerHTML = ''; // Clear the list before adding new lessons
+
+        const lessonsRef = ref(db, 'lessons');
+        const lessonsSnapshot = await get(lessonsRef);
+
+        lessonsSnapshot.forEach((childSnapshot) => {
+            const lessonData = childSnapshot.val();
+            const lessonCard = document.createElement('div');
+            lessonCard.className = 'lesson-card neumorphic p-4';
+            const lessonCardHeader = document.createElement('div');
+            lessonCardHeader.className = 'lesson-card-header flex items-center justify-between';
+            lessonCardHeader.textContent = lessonData.title;
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Edit';
+            editButton.className = 'neumorphic-button py-1 px-2 text-indigo-600 font-semibold ml-2';
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.className = 'neumorphic-button py-1 px-2 text-red-600 font-semibold ml-2';
+            deleteButton.onclick = function () {
+                deleteLesson(childSnapshot.key);
+            };
+            lessonCardHeader.appendChild(editButton);
+            lessonCardHeader.appendChild(deleteButton);
+            const lessonCardContent = document.createElement('div');
+            lessonCardContent.className = 'lesson-card-content';
+            const lessonCardBody = document.createElement('div');
+            lessonCardBody.className = 'lesson-card-body';
+            const lessonTask = document.createElement('p');
+            lessonTask.textContent = lessonData.task || 'No task assigned';
+            const lessonContent = document.createElement('div');
+            lessonContent.innerHTML = lessonData.content; // Display the rich text content
+            lessonCardBody.appendChild(lessonTask);
+            lessonCardBody.appendChild(lessonContent);
+            lessonCardContent.appendChild(lessonCardBody);
+            const lessonCardImage = document.createElement('img');
+            lessonCardImage.className = 'lesson-card-image';
+            lessonCardImage.src = lessonData.image || 'default-image.jpg';
+            const lessonCardPDFLink = document.createElement('a');
+            lessonCardPDFLink.href = lessonData.pdf || '#';
+            lessonCardPDFLink.textContent = 'Download PDF';
+            const lessonCardExternalLink = document.createElement('a');
+            lessonCardExternalLink.href = lessonData.externalLink || '#';
+            lessonCardExternalLink.textContent = 'Visit Link';
+            lessonCardContent.appendChild(lessonCardImage);
+            lessonCardContent.appendChild(lessonCardPDFLink);
+            lessonCardContent.appendChild(lessonCardExternalLink);
+            lessonCard.appendChild(lessonCardHeader);
+            lessonCard.appendChild(lessonCardContent);
+            lessonsManagementList.appendChild(lessonCard);
+        });
+
         document.getElementById('lesson-content').style.display = 'none';
         document.getElementById('lessons-section').style.display = 'none';
         document.getElementById('lesson-management').style.display = 'block';
-        loadLessonManagement();
     }
 
-    async function loadLessons() {
-    const user = auth.currentUser;
-    const userRef = ref(db, 'users/' + user.uid);
-    const userSnapshot = await get(userRef);
-    const userData = userSnapshot.val();
-    const schoolCode = userData.schoolCode;
-
-    const lessonsRef = ref(db, `schools/${schoolCode}/lessons`);
-    const lessonsSnapshot = await get(lessonsRef);
-    const lessonsList = document.getElementById('lessons-list');
-    lessonsList.innerHTML = '';
-
-    lessonsSnapshot.forEach((lessonSnapshot) => {
-        const lessonData = lessonSnapshot.val();
-        const lessonElement = createLessonElement(lessonData, lessonSnapshot.key);
-        lessonsList.appendChild(lessonElement);
-    });
-}
-
-function createLessonElement(lessonData, lessonId) {
-    console.log("Creating lesson element with data:", lessonData);  // Debug log
-    
-    const lessonElement = document.createElement('div');
-    lessonElement.className = 'lesson-card neumorphic';
-    
-    const title = lessonData.title || 'Untitled Lesson';
-    const task = lessonData.task || 'No task specified';
-    const content = lessonData.content || 'No content available';
-    const imageUrl = lessonData.imageUrl || '';
-    const pdfUrl = lessonData.pdfUrl || '';
-    const link = lessonData.link || '';
-
-    lessonElement.innerHTML = `
-        <div class="lesson-card-header">
-            ${imageUrl ? `<img src="${imageUrl}" alt="${title}" class="lesson-card-image">` : ''}
-            <h4 class="text-xl font-semibold mb-2">${title}</h4>
-            <p class="text-gray-600">${task}</p>
-        </div>
-        <div id="lesson-content-${lessonId}" class="lesson-card-content">
-            <div class="lesson-card-body">
-                <p class="mb-4">${content}</p>
-                ${pdfUrl ? `<p class="mb-2"><a href="${pdfUrl}" target="_blank" class="text-indigo-600">View PDF</a></p>` : ''}
-                ${link ? `<p class="mb-2"><a href="${link}" target="_blank" class="text-indigo-600">External Link</a></p>` : ''}
-            </div>
-        </div>
-    `;
-    
-    // Add click event listener to the whole card
-    lessonElement.addEventListener('click', function(event) {
-        // Prevent the click event from propagating if it's on a link
-        if (event.target.tagName === 'A') {
-            event.stopPropagation();
-            return;
-        }
-        toggleLessonDetails(lessonId);
-    });
-    
-    return lessonElement;
-}
-
-    async function loadLessonManagement() {
-        const user = auth.currentUser;
-        const userRef = ref(db, 'users/' + user.uid);
-        const userSnapshot = await get(userRef);
-        const userData = userSnapshot.val();
-        const schoolCode = userData.schoolCode;
-
-        const lessonsRef = ref(db, `schools/${schoolCode}/lessons`);
-        const lessonsSnapshot = await get(lessonsRef);
-        const lessonsList = document.getElementById('lessons-management-list');
-        lessonsList.innerHTML = '';
-
-        lessonsSnapshot.forEach((lessonSnapshot) => {
-            const lessonData = lessonSnapshot.val();
-            const lessonElement = createLessonManagementElement(lessonData, lessonSnapshot.key);
-            lessonsList.appendChild(lessonElement);
-        });
+    // Show the add lesson form
+    window.showAddLessonForm = function () {
+        document.getElementById('add-lesson-form').classList.toggle('hidden');
     }
 
-    function createLessonManagementElement(lessonData, lessonId) {
-        const lessonElement = document.createElement('div');
-        lessonElement.className = 'neumorphic p-4';
-        lessonElement.innerHTML = `
-            <h4 class="text-xl font-semibold mb-2">${lessonData.title}</h4>
-            <p class="mb-2"><strong>Task:</strong> ${lessonData.task}</p>
-            <button onclick="editLesson('${lessonId}')" class="neumorphic-button py-1 px-2 text-indigo-600 font-semibold mr-2">Edit</button>
-            <button onclick="deleteLesson('${lessonId}')" class="neumorphic-button py-1 px-2 text-red-600 font-semibold">Delete</button>
-        `;
-        return lessonElement;
-    }
-
-    window.showAddLessonForm = function() {
-        document.getElementById('add-lesson-form').style.display = 'block';
-    }
-
-    window.saveLesson = async function() {
-    console.log("saveLesson function called");
-    
-    // Get all form elements
-    const titleElement = document.getElementById('lesson-title');
-    const taskElement = document.getElementById('lesson-task');
-    const contentElement = document.getElementById('lesson-content');
-    console.log('Content value:', contentElement.value);
-    const imageElement = document.getElementById('lesson-image');
-    const pdfElement = document.getElementById('lesson-pdf');
-    const linkElement = document.getElementById('lesson-link');
-
-    // Get values from form elements, with additional checks
-    const title = titleElement.value ? titleElement.value.trim() : '';
-    const task = taskElement.value ? taskElement.value.trim() : '';
-    const content = contentElement.value ? contentElement.value.trim() : '';
-    const imageFile = imageElement.files ? imageElement.files[0] : null;
-    const pdfFile = pdfElement.files ? pdfElement.files[0] : null;
-    const link = linkElement.value ? linkElement.value.trim() : '';
-
-    console.log("Form values:", { title, task, content, imageFile, pdfFile, link });
-
-    if (!title) {
-        alert('Please provide a title for the lesson');
-        return;
-    }
-
-    try {
-        const user = auth.currentUser;
-        const userRef = ref(db, 'users/' + user.uid);
-        const userSnapshot = await get(userRef);
-        const userData = userSnapshot.val();
-        const schoolCode = userData.schoolCode;
-
-        let imageUrl = null;
-        let pdfUrl = null;
-
-        // Upload image if provided
-        if (imageFile) {
-            const imageRef = storageRef(storage, `schools/${schoolCode}/lessons/${title}/${imageFile.name}`);
-            const imageSnapshot = await uploadBytes(imageRef, imageFile);
-            imageUrl = await getDownloadURL(imageSnapshot.ref);
-        }
-
-        // Upload PDF if provided
-        if (pdfFile) {
-            const pdfRef = storageRef(storage, `schools/${schoolCode}/lessons/${title}/${pdfFile.name}`);
-            const pdfSnapshot = await uploadBytes(pdfRef, pdfFile);
-            pdfUrl = await getDownloadURL(pdfSnapshot.ref);
-        }
-
-        // Prepare lesson data
-        const lessonData = {
-            title,
-            task,
-            content,
-            imageUrl,
-            pdfUrl,
-            link,
-            createdBy: user.uid,
-            createdAt: Date.now()
-        };
-
-        console.log("Lesson data to be saved:", lessonData);
-
-        // Save lesson to Firebase Realtime Database
-        const newLessonRef = push(ref(db, `schools/${schoolCode}/lessons`));
-        await set(newLessonRef, lessonData);
-
-        console.log("Lesson saved successfully");
-        alert('Lesson saved successfully!');
-
-        // Clear form fields
-        titleElement.value = '';
-        taskElement.value = '';
-        contentElement.value = '';
-        imageElement.value = '';
-        pdfElement.value = '';
-        linkElement.value = '';
-
-        // Reload lesson management view
-        loadLessonManagement();
-    } catch (error) {
-        console.error('Error saving lesson:', error);
-        alert('Failed to save lesson. Please try again.');
-    }
-}
-    window.editLesson = async function(lessonId) {
-        const user = auth.currentUser;
-        const userRef = ref(db, 'users/' + user.uid);
-        const userSnapshot = await get(userRef);
-        const userData = userSnapshot.val();
-        const schoolCode = userData.schoolCode;
-
-        const lessonRef = ref(db, `schools/${schoolCode}/lessons/${lessonId}`);
-        const lessonSnapshot = await get(lessonRef);
-        const lessonData = lessonSnapshot.val();
-
-        document.getElementById('lesson-title').value = lessonData.title;
-        document.getElementById('lesson-task').value = lessonData.task;
-        document.getElementById('lesson-content').value = lessonData.content;
-        document.getElementById('lesson-link').value = lessonData.link || '';
-
-        showAddLessonForm();
-
-        // Change the save button to update
-        const saveButton = document.querySelector('#add-lesson-form button');
-        saveButton.textContent = 'Update Lesson';
-        saveButton.onclick = () => updateLesson(lessonId);
-    }
-
-    async function updateLesson(lessonId) {
-        const title = document.getElementById('lesson-title').value;
-        const task = document.getElementById('lesson-task').value;
-        const content = document.getElementById('lesson-content').value;
+    // Save a new lesson
+    window.saveLesson = async function () {
+        const title = document.getElementById('lesson-title').value.trim();
+        const task = document.getElementById('lesson-task').value.trim();
+        const content = quill.root.innerHTML;
         const imageFile = document.getElementById('lesson-image').files[0];
         const pdfFile = document.getElementById('lesson-pdf').files[0];
-        const link = document.getElementById('lesson-link').value;
+        const externalLink = document.getElementById('lesson-link').value.trim();
 
-        const user = auth.currentUser;
-        const userRef = ref(db, 'users/' + user.uid);
-        const userSnapshot = await get(userRef);
-        const userData = userSnapshot.val();
-        const schoolCode = userData.schoolCode;
-
-        const lessonRef = ref(db, `schools/${schoolCode}/lessons/${lessonId}`);
-        const lessonSnapshot = await get(lessonRef);
-        const currentLessonData = lessonSnapshot.val();
-
-        let imageUrl = currentLessonData.imageUrl;
-        let pdfUrl = currentLessonData.pdfUrl;
-
-        if (imageFile) {
-            imageUrl = await uploadFile(imageFile, 'images');
+        if (!title) {
+            alert('Please provide a lesson title.');
+            return;
         }
 
-        if (pdfFile) {
-            pdfUrl = await uploadFile(pdfFile, 'pdfs');
-        }
-
-        const updatedLessonData = {
-            ...currentLessonData,
-            title,
-            task,
-            content,
-            imageUrl,
-            pdfUrl,
-            link,
-            updatedAt: Date.now()
-        };
-
-        await set(lessonRef, updatedLessonData);
-
-        alert('Lesson updated successfully!');
-        loadLessonManagement();
-
-        // Reset the form and button
-        document.getElementById('add-lesson-form').reset();
-        const saveButton = document.querySelector('#add-lesson-form button');
-        saveButton.textContent = 'Save Lesson';
-        saveButton.onclick = saveLesson;
-    }
-
-    window.deleteLesson = async function(lessonId) {
-        if (confirm('Are you sure you want to delete this lesson?')) {
-            const user = auth.currentUser;
-            const userRef = ref(db, 'users/' + user.uid);
-            const userSnapshot = await get(userRef);
-            const userData = userSnapshot.val();
-            const schoolCode = userData.schoolCode;
-
-            const lessonRef = ref(db, `schools/${schoolCode}/lessons/${lessonId}`);
-            await set(lessonRef, null);
-
-            alert('Lesson deleted successfully!');
-            loadLessonManagement();
-        }
-    }
-
-    // Function to preview uploaded image
-    function previewImage(event, previewId) {
-        const reader = new FileReader();
-        reader.onload = function() {
-            const output = document.getElementById(previewId);
-            output.src = reader.result;
-            output.parentElement.style.display = 'block';
-        }
-        reader.readAsDataURL(event.target.files[0]);
-    }
-
-    // Function to update file input label
-    function updateFileLabel(event, labelId) {
-        const label = document.getElementById(labelId);
-        label.textContent = event.target.files[0].name;
-    }
-
-    // Handle logout
-    window.logout = async function () {
         try {
-            await signOut(auth);
+            const lessonRef = push(ref(db, 'lessons'));
+
+            let imageUrl = '';
+            if (imageFile) {
+                const imageStorageRef = storageRef(storage, `lesson-images/${lessonRef.key}/${imageFile.name}`);
+                const imageSnapshot = await uploadBytes(imageStorageRef, imageFile);
+                imageUrl = await getDownloadURL(imageSnapshot.ref);
+            }
+
+            let pdfUrl = '';
+            if (pdfFile) {
+                const pdfStorageRef = storageRef(storage, `lesson-pdfs/${lessonRef.key}/${pdfFile.name}`);
+                const pdfSnapshot = await uploadBytes(pdfStorageRef, pdfFile);
+                pdfUrl = await getDownloadURL(pdfSnapshot.ref);
+            }
+
+            await set(lessonRef, {
+                title: title,
+                task: task,
+                content: content,
+                image: imageUrl,
+                pdf: pdfUrl,
+                externalLink: externalLink
+            });
+
+            alert('Lesson saved successfully!');
+            showLessonManagement(); // Refresh the lessons list
+        } catch (error) {
+            alert('Failed to save lesson: ' + error.message);
+        }
+    }
+
+    // Delete a lesson
+    async function deleteLesson(lessonId) {
+        const confirmDelete = confirm('Are you sure you want to delete this lesson?');
+
+        if (confirmDelete) {
+            try {
+                await set(ref(db, 'lessons/' + lessonId), null);
+                alert('Lesson deleted successfully!');
+                showLessonManagement(); // Refresh the lessons list
+            } catch (error) {
+                alert('Failed to delete lesson: ' + error.message);
+            }
+        }
+    }
+
+    // Logout
+    window.logout = function () {
+        signOut(auth).then(() => {
             document.getElementById('auth-container').style.display = 'flex';
             document.getElementById('sidebar').style.display = 'none';
             document.getElementById('main-content').style.display = 'none';
-        } catch (error) {
-            alert('Logout failed: ' + error.message);
-        }
+        }).catch((error) => {
+            console.error('Failed to logout:', error);
+        });
     }
 
-    // Event listeners
-    document.addEventListener("DOMContentLoaded", function () {
-        // Display gamification mode selection when registering as a teacher
-        document.getElementById('register-role').addEventListener('change', function() {
-            const role = this.value;
-            const gamificationModeField = document.getElementById('register-gamification-mode');
-            if (role === 'teacher') {
-                gamificationModeField.style.display = 'block';
-            } else {
-                gamificationModeField.style.display = 'none';
+    // Quill Editor initialization
+    const quill = new Quill('#lesson-editor', {
+        theme: 'snow',
+        placeholder: 'Enter the lesson content...',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link', 'image', 'video'],
+                ['clean']
+            ]
+        }
+    });
+
+    // Lesson image preview
+    document.getElementById('lesson-image').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        const previewContainer = document.getElementById('lesson-image-preview-container');
+        const previewImage = document.getElementById('lesson-image-preview');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImage.src = e.target.result;
+                previewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewContainer.style.display = 'none';
+            previewImage.src = '';
+        }
+    });
+
+    // Lesson PDF label
+    document.getElementById('lesson-pdf').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        const label = document.getElementById('lesson-pdf-label');
+        if (file) {
+            label.textContent = file.name;
+        } else {
+            label.textContent = '';
+        }
+    });
+
+    // Load avatar
+    window.onload = async function () {
+        const user = auth.currentUser;
+
+        if (user) {
+            const userSnapshot = await get(ref(db, 'users/' + user.uid));
+            if (userSnapshot.exists()) {
+                const userData = userSnapshot.val();
+                if (userData.avatarUrl) {
+                    document.getElementById('avatar').src = userData.avatarUrl;
+                }
             }
-        });
-
-        // Image preview for lesson
-        document.getElementById('lesson-image').addEventListener('change', function(event) {
-            previewImage(event, 'lesson-image-preview');
-        });
-
-        // Update file label for lesson PDF
-        document.getElementById('lesson-pdf').addEventListener('change', function(event) {
-            updateFileLabel(event, 'lesson-pdf-label');
-        });
-    });
-
-    // Make functions available globally
-    window.login = login;
-    window.register = register;
-    window.logout = logout;
-    window.showDashboard = showDashboard;
-    window.showLessons = showLessons;
-    window.showLessonManagement = showLessonManagement;
-    window.showAddLessonForm = showAddLessonForm;
-    window.saveLesson = saveLesson;
-    window.editLesson = editLesson;
-    window.deleteLesson = deleteLesson;
-
-    // Add this to the end of your existing JavaScript
-document.querySelectorAll('button, .neumorphic-button').forEach(button => {
-    button.addEventListener('click', function(e) {
-        let ripple = document.createElement('span');
-        ripple.classList.add('ripple');
-        this.appendChild(ripple);
-        let x = e.clientX - e.target.offsetLeft;
-        let y = e.clientY - e.target.offsetTop;
-        ripple.style.left = `${x}px`;
-        ripple.style.top = `${y}px`;
-        setTimeout(() => {
-            ripple.remove();
-        }, 300);
-    });
-});
+        }
+    }
 </script>
+
 </body>
 </html>
+
