@@ -765,10 +765,13 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     }
 
     // Load individual leaderboard for students in competence mode
-    async function loadIndividualLeaderboard(schoolCode) {
-        try {
-            const leaderboardRef = ref(db, `schools/${schoolCode}/leaderboard`);
-            const snapshot = await get(leaderboardRef);
+    // Load individual leaderboard for students in competence mode in real-time
+async function loadIndividualLeaderboard(schoolCode) {
+    try {
+        const leaderboardRef = ref(db, `schools/${schoolCode}/leaderboard`);
+        
+        // Listen for changes to the leaderboard data
+        onValue(leaderboardRef, (snapshot) => {
             const leaderboardList = document.getElementById('individual-leaderboard-list');
             leaderboardList.innerHTML = '';
 
@@ -790,41 +793,47 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                 li.className = 'py-2 border-b border-gray-200 last:border-b-0';
                 leaderboardList.appendChild(li);
             });
-        } catch (error) {
-            console.error('Failed to load individual leaderboard:', error);
-        }
-    }
-
-    // Load team leaderboard for relatedness mode with real-time updates
-    function setupTeamLeaderboardListener(schoolCode) {
-        const teamsRef = ref(db, `schools/${schoolCode}/teams`);
-        const leaderboardList = document.getElementById('team-leaderboard-list');
-
-        onValue(teamsRef, (snapshot) => {
-            leaderboardList.innerHTML = ''; // Clear the list first
-
-            // Create an array to store teams for sorting
-            let teams = [];
-
-            snapshot.forEach((childSnapshot) => {
-                const team = childSnapshot.val();
-                teams.push({ name: childSnapshot.key, points: team.points || 0 });
-            });
-
-            // Sort the teams by points in descending order
-            teams.sort((a, b) => b.points - a.points);
-
-            // Render the sorted teams in the leaderboard
-            teams.forEach((team) => {
-                const li = document.createElement('li');
-                li.textContent = `${team.name} - ${team.points} points`;
-                li.className = 'py-2 border-b border-gray-200 last:border-b-0';
-                leaderboardList.appendChild(li);
-            });
         }, (error) => {
-            console.error('Failed to load team leaderboard:', error);
+            console.error('Failed to load individual leaderboard in real-time:', error);
         });
+    } catch (error) {
+        console.error('Failed to load individual leaderboard:', error);
     }
+}
+
+
+    // Load team leaderboard for relatedness mode in real-time
+function setupTeamLeaderboardListener(schoolCode) {
+    const teamsRef = ref(db, `schools/${schoolCode}/teams`);
+    
+    // Listen for changes to the teams data
+    onValue(teamsRef, (snapshot) => {
+        const leaderboardList = document.getElementById('team-leaderboard-list');
+        leaderboardList.innerHTML = ''; // Clear the list first
+
+        // Create an array to store teams for sorting
+        let teams = [];
+
+        snapshot.forEach((childSnapshot) => {
+            const team = childSnapshot.val();
+            teams.push({ name: childSnapshot.key, points: team.points || 0 });
+        });
+
+        // Sort the teams by points in descending order
+        teams.sort((a, b) => b.points - a.points);
+
+        // Render the sorted teams in the leaderboard
+        teams.forEach((team) => {
+            const li = document.createElement('li');
+            li.textContent = `${team.name} - ${team.points} points`;
+            li.className = 'py-2 border-b border-gray-200 last:border-b-0';
+            leaderboardList.appendChild(li);
+        });
+    }, (error) => {
+        console.error('Failed to load team leaderboard in real-time:', error);
+    });
+}
+
 
     // Load student progress for competence mode in real-time
 async function loadStudentProgress(uid) {
