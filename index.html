@@ -1167,80 +1167,56 @@ async function loadEarnedBadges(uid) {
     }
 
     // Load team messages and set up message listeners
-    async function loadTeamMessages(schoolCode, teamName) {
-        try {
-            const messagesRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages`);
-            const messagesList = document.getElementById('student-messages-list');
-            messagesList.innerHTML = '';
+   // Load team messages and set up real-time listeners
+async function loadTeamMessages(schoolCode, teamName) {
+    try {
+        const messagesRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages`);
+        const messagesList = document.getElementById('student-messages-list');
+        messagesList.innerHTML = ''; // Clear the list first
 
-            onValue(messagesRef, (snapshot) => {
-                messagesList.innerHTML = ''; // Clear the list before appending
-                snapshot.forEach((childSnapshot) => {
-                    const messageData = childSnapshot.val();
-                    const messageContainer = document.createElement('div');
-                    messageContainer.className = 'message-container';
+        // Listen for new messages in real-time
+        onValue(messagesRef, (snapshot) => {
+            messagesList.innerHTML = ''; // Clear the list before appending new messages
 
-                    const messageHeader = document.createElement('div');
-                    messageHeader.className = 'message-header';
+            snapshot.forEach((childSnapshot) => {
+                const messageData = childSnapshot.val();
+                const messageContainer = document.createElement('div');
+                messageContainer.className = 'message-container p-4 rounded-lg shadow-md mb-4 bg-white';
 
-                    const messageText = document.createElement('div');
-                    messageText.className = 'message-text';
-                    messageText.textContent = messageData.text;
+                const messageHeader = document.createElement('div');
+                messageHeader.className = 'message-header font-semibold text-indigo-600 mb-1';
 
-                    const messageSender = document.createElement('div');
-                    messageSender.className = 'message-sender';
-                    messageSender.textContent = messageData.sender;
+                const messageText = document.createElement('div');
+                messageText.className = 'message-text mb-2';
+                messageText.textContent = messageData.text;
 
-                    const messageTimestamp = document.createElement('div');
-                    messageTimestamp.textContent = new Date(messageData.timestamp).toLocaleString();
-                    messageTimestamp.className = 'text-sm text-gray-500';
+                const messageSender = document.createElement('div');
+                messageSender.className = 'message-sender text-sm text-gray-600';
+                messageSender.textContent = `Sent by: ${messageData.sender}`;
 
-                    const messageActions = document.createElement('div');
-                    messageActions.className = 'message-actions flex space-x-2 mt-2';
+                const messageTimestamp = document.createElement('div');
+                messageTimestamp.textContent = new Date(messageData.timestamp).toLocaleString();
+                messageTimestamp.className = 'text-xs text-gray-500';
 
-                    const currentLikes = Array.isArray(messageData.likes) ? messageData.likes : [];
-                    const currentDislikes = Array.isArray(messageData.dislikes) ? messageData.dislikes : [];
-                    const likeButton = document.createElement('button');
-                    likeButton.textContent = `👍 Like (${currentLikes.length})`;
-                    likeButton.className = 'neumorphic-button text-sm py-1 px-2 text-blue-600';
-                    likeButton.onclick = () => toggleLikeDislike(schoolCode, teamName, childSnapshot.key, currentLikes, currentDislikes, true);
+                messageHeader.appendChild(messageSender);
+                messageHeader.appendChild(messageTimestamp);
 
-                    const dislikeButton = document.createElement('button');
-                    dislikeButton.textContent = `👎 Dislike (${currentDislikes.length})`;
-                    dislikeButton.className = 'neumorphic-button text-sm py-1 px-2 text-red-600';
-                    dislikeButton.onclick = () => toggleLikeDislike(schoolCode, teamName, childSnapshot.key, currentLikes, currentDislikes, false);
+                messageContainer.appendChild(messageHeader);
+                messageContainer.appendChild(messageText);
 
-                    messageActions.appendChild(likeButton);
-                    messageActions.appendChild(dislikeButton);
-
-                    messageHeader.appendChild(messageSender);
-                    messageHeader.appendChild(messageTimestamp);
-
-                    messageContainer.appendChild(messageHeader);
-                    messageContainer.appendChild(messageText);
-                    messageContainer.appendChild(messageActions);
-
-                    if (currentLikes.length > 0) {
-                        const likesList = document.createElement('div');
-                        likesList.className = 'message-likes-dislikes text-sm text-blue-600';
-                        likesList.textContent = `${currentLikes.join(", ")} liked this`;
-                        messageContainer.appendChild(likesList);
-                    }
-
-                    if (currentDislikes.length > 0) {
-                        const dislikesList = document.createElement('div');
-                        dislikesList.className = 'message-likes-dislikes text-sm text-red-600';
-                        dislikesList.textContent = `${currentDislikes.join(", ")} disliked this`;
-                        messageContainer.appendChild(dislikesList);
-                    }
-
-                    messagesList.appendChild(messageContainer);
-                });
+                messagesList.appendChild(messageContainer);
             });
-        } catch (error) {
-            console.error('Failed to load team messages:', error);
-        }
+
+            // Scroll to the latest message
+            messagesList.scrollTop = messagesList.scrollHeight;
+        }, (error) => {
+            console.error('Failed to load team messages in real-time:', error);
+        });
+    } catch (error) {
+        console.error('Failed to load team messages:', error);
     }
+}
+
 
     // Toggle like or dislike on a message
     async function toggleLikeDislike(schoolCode, teamName, messageId, currentLikes, currentDislikes, isLike) {
