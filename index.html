@@ -826,14 +826,15 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
         });
     }
 
-    // Load student progress for competence mode
-    async function loadStudentProgress(uid) {
-        try {
-            const studentRef = ref(db, `users/${uid}`);
-            const studentSnapshot = await get(studentRef);
-
-            if (studentSnapshot.exists()) {
-                const studentData = studentSnapshot.val();
+    // Load student progress for competence mode in real-time
+async function loadStudentProgress(uid) {
+    try {
+        const studentRef = ref(db, `users/${uid}`);
+        
+        // Listen for changes to the student's points
+        onValue(studentRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const studentData = snapshot.val();
                 const currentPoints = studentData.points || 0;
                 const currentLevel = Math.floor(currentPoints / 1000) + 1;
                 const nextLevel = currentLevel + 1;
@@ -843,20 +844,25 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                 document.getElementById('progress').style.width = `${progress}%`;
                 document.getElementById('next-level').textContent = `Next Level: ${nextLevel}`;
 
+                // Update badges in real-time
                 loadEarnedBadges(uid);
-
                 document.getElementById('student-progress').style.display = 'block';
             }
-        } catch (error) {
-            console.error('Failed to load student progress:', error);
-        }
+        }, (error) => {
+            console.error('Failed to load student progress in real-time:', error);
+        });
+    } catch (error) {
+        console.error('Failed to load student progress:', error);
     }
+}
 
-    // Load earned badges for a student
-    async function loadEarnedBadges(uid) {
-        try {
-            const badgesRef = ref(db, `users/${uid}/badges`);
-            const snapshot = await get(badgesRef);
+// Load earned badges for a student in real-time
+async function loadEarnedBadges(uid) {
+    try {
+        const badgesRef = ref(db, `users/${uid}/badges`);
+        
+        // Listen for changes to the student's badges
+        onValue(badgesRef, (snapshot) => {
             const badgesContainer = document.getElementById('earned-badges');
             badgesContainer.innerHTML = '';
 
@@ -864,17 +870,17 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
             snapshot.forEach((childSnapshot) => {
                 const badgeName = childSnapshot.val();
                 const badge = document.createElement('div');
-                badge.className = 'neumorphic p-2';
+                badge.className = 'neumorphic p-2 rounded-full';
                 const img = document.createElement('img');
                 img.src = `images/badges/${badgeName.toLowerCase().replace(/ /g, '-')}.png`;
                 img.alt = badgeName;
                 img.className = 'w-12 h-12';
-                
+
                 // Set default image if badge image fails to load
                 img.onerror = () => {
                     img.src = 'images/badges/default-badge.png';
                 };
-                
+
                 badge.appendChild(img);
                 badge.title = badgeName; // Add tooltip with badge name
                 badgesContainer.appendChild(badge);
@@ -887,10 +893,14 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
                 noBadgesMsg.className = 'text-gray-500 italic';
                 badgesContainer.appendChild(noBadgesMsg);
             }
-        } catch (error) {
-            console.error('Failed to load earned badges:', error);
-        }
+        }, (error) => {
+            console.error('Failed to load earned badges in real-time:', error);
+        });
+    } catch (error) {
+        console.error('Failed to load earned badges:', error);
     }
+}
+
 
     // Load students list for the teacher
     async function loadStudents(schoolCode, showAvatars = false) {
