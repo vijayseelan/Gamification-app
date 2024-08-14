@@ -1166,7 +1166,6 @@ async function loadEarnedBadges(uid) {
         }
     }
 
-    // Load team messages and set up message listeners
    // Load team messages and set up real-time listeners
 async function loadTeamMessages(schoolCode, teamName) {
     try {
@@ -1180,6 +1179,7 @@ async function loadTeamMessages(schoolCode, teamName) {
 
             snapshot.forEach((childSnapshot) => {
                 const messageData = childSnapshot.val();
+                const messageId = childSnapshot.key;
                 const messageContainer = document.createElement('div');
                 messageContainer.className = 'message-container p-4 rounded-lg shadow-md mb-4 bg-white';
 
@@ -1198,11 +1198,45 @@ async function loadTeamMessages(schoolCode, teamName) {
                 messageTimestamp.textContent = new Date(messageData.timestamp).toLocaleString();
                 messageTimestamp.className = 'text-xs text-gray-500';
 
+                const messageActions = document.createElement('div');
+                messageActions.className = 'message-actions flex space-x-2 mt-2';
+
+                const currentLikes = Array.isArray(messageData.likes) ? messageData.likes : [];
+                const currentDislikes = Array.isArray(messageData.dislikes) ? messageData.dislikes : [];
+
+                const likeButton = document.createElement('button');
+                likeButton.textContent = `👍 Like (${currentLikes.length})`;
+                likeButton.className = 'neumorphic-button text-sm py-1 px-2 text-blue-600';
+                likeButton.onclick = () => toggleLikeDislike(schoolCode, teamName, messageId, currentLikes, currentDislikes, true);
+
+                const dislikeButton = document.createElement('button');
+                dislikeButton.textContent = `👎 Dislike (${currentDislikes.length})`;
+                dislikeButton.className = 'neumorphic-button text-sm py-1 px-2 text-red-600';
+                dislikeButton.onclick = () => toggleLikeDislike(schoolCode, teamName, messageId, currentLikes, currentDislikes, false);
+
+                messageActions.appendChild(likeButton);
+                messageActions.appendChild(dislikeButton);
+
                 messageHeader.appendChild(messageSender);
                 messageHeader.appendChild(messageTimestamp);
 
                 messageContainer.appendChild(messageHeader);
                 messageContainer.appendChild(messageText);
+                messageContainer.appendChild(messageActions);
+
+                if (currentLikes.length > 0) {
+                    const likesList = document.createElement('div');
+                    likesList.className = 'message-likes-dislikes text-sm text-blue-600';
+                    likesList.textContent = `${currentLikes.join(", ")} liked this`;
+                    messageContainer.appendChild(likesList);
+                }
+
+                if (currentDislikes.length > 0) {
+                    const dislikesList = document.createElement('div');
+                    dislikesList.className = 'message-likes-dislikes text-sm text-red-600';
+                    dislikesList.textContent = `${currentDislikes.join(", ")} disliked this`;
+                    messageContainer.appendChild(dislikesList);
+                }
 
                 messagesList.appendChild(messageContainer);
             });
@@ -1217,43 +1251,43 @@ async function loadTeamMessages(schoolCode, teamName) {
     }
 }
 
+// Toggle like or dislike on a message
+async function toggleLikeDislike(schoolCode, teamName, messageId, currentLikes, currentDislikes, isLike) {
+    const user = auth.currentUser;
+    const userRef = await get(ref(db, 'users/' + user.uid));
+    const userData = userRef.val();
 
-    // Toggle like or dislike on a message
-    async function toggleLikeDislike(schoolCode, teamName, messageId, currentLikes, currentDislikes, isLike) {
-        const user = auth.currentUser;
-        const userRef = await get(ref(db, 'users/' + user.uid));
-        const userData = userRef.val();
+    const messageRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages/${messageId}`);
 
-        if (isLike) {
-            if (currentLikes.includes(userData.fullName)) {
-                alert('You have already liked this message.');
-            } else {
-                // Remove dislike if present
-                if (currentDislikes.includes(userData.fullName)) {
-                    const dislikeIndex = currentDislikes.indexOf(userData.fullName);
-                    currentDislikes.splice(dislikeIndex, 1);
-                }
-                currentLikes.push(userData.fullName);
-                const messageRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages/${messageId}`);
-                await update(messageRef, { likes: currentLikes, dislikes: currentDislikes });
-                alert('You liked this message.');
-            }
+    if (isLike) {
+        if (currentLikes.includes(userData.fullName)) {
+            alert('You have already liked this message.');
         } else {
+            // Remove dislike if present
             if (currentDislikes.includes(userData.fullName)) {
-                alert('You have already disliked this message.');
-            } else {
-                // Remove like if present
-                if (currentLikes.includes(userData.fullName)) {
-                    const likeIndex = currentLikes.indexOf(userData.fullName);
-                    currentLikes.splice(likeIndex, 1);
-                }
-                currentDislikes.push(userData.fullName);
-                const messageRef = ref(db, `schools/${schoolCode}/teams/${teamName}/messages/${messageId}`);
-                await update(messageRef, { likes: currentLikes, dislikes: currentDislikes });
-                alert('You disliked this message.');
+                const dislikeIndex = currentDislikes.indexOf(userData.fullName);
+                currentDislikes.splice(dislikeIndex, 1);
             }
+            currentLikes.push(userData.fullName);
+            await update(messageRef, { likes: currentLikes, dislikes: currentDislikes });
+            alert('You liked this message.');
+        }
+    } else {
+        if (currentDislikes.includes(userData.fullName)) {
+            alert('You have already disliked this message.');
+        } else {
+            // Remove like if present
+            if (currentLikes.includes(userData.fullName)) {
+                const likeIndex = currentLikes.indexOf(userData.fullName);
+                currentLikes.splice(likeIndex, 1);
+            }
+            currentDislikes.push(userData.fullName);
+            await update(messageRef, { likes: currentLikes, dislikes: currentDislikes });
+            alert('You disliked this message.');
         }
     }
+}
+
 
     // Send a new message to the team
     window.sendMessage = async function () {
