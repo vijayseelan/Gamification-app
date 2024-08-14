@@ -1306,6 +1306,43 @@ async function loadEarnedBadges(uid) {
         }
     }
 
+    // Award points to a team (For teachers)
+window.awardTeamPoints = async function (points) {
+    const teamName = document.getElementById('team-select').value;
+    const user = auth.currentUser;
+
+    if (teamName) {
+        try {
+            // Get the school code for the current user (teacher)
+            const userRef = ref(db, 'users/' + user.uid);
+            const userSnapshot = await get(userRef);
+            const userData = userSnapshot.val();
+            const schoolCode = userData.schoolCode;
+
+            // Reference to the selected team in the database
+            const teamRef = ref(db, `schools/${schoolCode}/teams/${teamName}`);
+            const teamSnapshot = await get(teamRef);
+
+            if (teamSnapshot.exists()) {
+                const teamData = teamSnapshot.val();
+                const newPoints = (teamData.points || 0) + points;
+
+                // Update the points for the team
+                await update(teamRef, { points: newPoints });
+
+                alert(`Awarded ${points} points to the team: ${teamName}`);
+                loadTeams(schoolCode); // Reload teams to reflect changes
+            } else {
+                alert('Selected team does not exist.');
+            }
+        } catch (error) {
+            console.error('Failed to award points to the team:', error);
+        }
+    } else {
+        alert('Please select a team.');
+    }
+}
+
     // Show dashboard view
     window.showDashboard = function () {
         document.getElementById('lesson-content').style.display = 'block';
